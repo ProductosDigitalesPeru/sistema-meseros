@@ -123,45 +123,26 @@ border:1px solid white;
 
 </div>
 
-<script type="module">
+<!-- Firebase versión clásica compatible -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, update, remove } 
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
+<script>
+  var firebaseConfig = {
+    apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
+    authDomain: "sistema-meseros.firebaseapp.com",
+    databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
+    projectId: "sistema-meseros",
+    storageBucket: "sistema-meseros.firebasestorage.app",
+    messagingSenderId: "35929303202",
+    appId: "1:35929303202:web:c787500b3117443d4dcffb"
+  };
 
-// CONFIGURACIÓN DE TU PROYECTO
-const firebaseConfig = {
-  apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
-  authDomain: "sistema-meseros.firebaseapp.com",
-  databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
-  projectId: "sistema-meseros",
-  storageBucket: "sistema-meseros.firebasestorage.app",
-  messagingSenderId: "35929303202",
-  appId: "1:35929303202:web:c787500b3117443d4dcffb"
-};
-
-// INICIALIZAR FIREBASE
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-
-// ===== EJEMPLO DE ESTRUCTURA DE MESAS =====
-
-// Crear o actualizar mesa
-function actualizarMesa(numeroMesa, datosMesa){
-    update(ref(database, 'mesas/' + numeroMesa), datosMesa);
-}
-
-// Escuchar cambios en tiempo real
-onValue(ref(database, 'mesas'), (snapshot) => {
-    const data = snapshot.val();
-    console.log("Estado actual de mesas:", data);
-});
-
-// Ejemplo para marcar mesa como ocupada
-// actualizarMesa(1, { estado: "sin atender", total: 0 });
-
+  firebase.initializeApp(firebaseConfig);
+  var database = firebase.database();
 </script>
 
 </body>
 </html>
+
 
