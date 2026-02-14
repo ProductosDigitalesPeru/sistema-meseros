@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Meseros</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial, sans-serif;
+background:#0f0f0f;
+color:white;
+}
+
+h1{
+text-align:center;
+padding:15px;
+margin:0;
+background:#000;
+font-size:18px;
+}
+
+#mesas{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+padding:10px;
+}
+
+.mesa{
+padding:20px;
+border-radius:10px;
+text-align:center;
+font-size:16px;
+cursor:pointer;
+}
+
+.libre{background:#2e7d32;}
+.sin_atender{background:#f9a825;}
+.tomado{background:#ef6c00;}
+.cocina{background:#c62828;}
+.atendido{background:#1565c0;}
+.pagar{background:#6a1b9a;}
+.pagado{background:#424242;}
+
+#pedido{
+display:none;
+padding:15px;
+}
+
+button{
+width:100%;
+padding:12px;
+margin:5px 0;
+border:none;
+border-radius:8px;
+font-size:14px;
+cursor:pointer;
+}
+
+.producto{
+display:flex;
+justify-content:space-between;
+margin:5px 0;
+font-size:14px;
+}
+
+.total{
+margin-top:10px;
+font-size:18px;
+font-weight:bold;
+}
+
+.select-estado{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:8px;
+}
+
+.volver{
+background:#000;
+color:white;
+border:1px solid white;
+}
+
+</style>
+</head>
+<body>
+
+<h1>Sistema Mesas</h1>
+
+<div id="mesas"></div>
+
+<div id="pedido">
+
+<h2 id="tituloMesa"></h2>
+
+<select class="select-estado" onchange="cambiarEstado(this.value)">
+<option value="sin_atender">Sin atender</option>
+<option value="tomado">Pedido tomado</option>
+<option value="cocina">En cocina</option>
+<option value="atendido">Atendido</option>
+<option value="pagar">Por pagar</option>
+<option value="pagado">Pagado</option>
+</select>
+
+<h3>Agregar Productos</h3>
+
+<button onclick="agregarProducto('Ceviche',26)">Ceviche S/26</button>
+<button onclick="agregarProducto('Arroz',26)">Arroz S/26</button>
+<button onclick="agregarProducto('Limonada',12)">Limonada S/12</button>
+
+<h3>Pedido</h3>
+<div id="listaPedido"></div>
+
+<div class="total">Total: S/ <span id="total">0</span></div>
+
+<button onclick="cerrarMesa()">Cerrar Mesa</button>
+<button class="volver" onclick="volverMesas()">Volver</button>
+
+</div>
+
+<script>
+
+let mesas=[];
+let mesaActual=null;
+
+for(let i=1;i<=13;i++){
+mesas.push({
+numero:i,
+estado:'libre',
+pedidos:[],
+total:0
+});
+}
+
+function renderMesas(){
+const cont=document.getElementById("mesas");
+cont.innerHTML="";
+
+mesas.forEach(m=>{
+const div=document.createElement("div");
+div.className="mesa "+m.estado;
+div.innerText="Mesa "+m.numero;
+div.onclick=()=>abrirMesa(m.numero);
+cont.appendChild(div);
+});
+}
+
+function abrirMesa(numero){
+mesaActual=mesas[numero-1];
+document.getElementById("mesas").style.display="none";
+document.getElementById("pedido").style.display="block";
+document.getElementById("tituloMesa").innerText="Mesa "+numero;
+renderPedido();
+}
+
+function agregarProducto(nombre,precio){
+mesaActual.pedidos.push({nombre,precio});
+mesaActual.total+=precio;
+if(mesaActual.estado==='libre'){
+mesaActual.estado='sin_atender';
+}
+renderPedido();
+renderMesas();
+}
+
+function renderPedido(){
+const lista=document.getElementById("listaPedido");
+lista.innerHTML="";
+mesaActual.pedidos.forEach(p=>{
+const div=document.createElement("div");
+div.className="producto";
+div.innerHTML=`<span>${p.nombre}</span><span>S/${p.precio}</span>`;
+lista.appendChild(div);
+});
+document.getElementById("total").innerText=mesaActual.total;
+}
+
+function cambiarEstado(estado){
+mesaActual.estado=estado;
+renderMesas();
+}
+
+function cerrarMesa(){
+mesaActual.pedidos=[];
+mesaActual.total=0;
+mesaActual.estado='libre';
+renderMesas();
+volverMesas();
+}
+
+function volverMesas(){
+document.getElementById("pedido").style.display="none";
+document.getElementById("mesas").style.display="grid";
+}
+
+renderMesas();
+
+</script>
+
+</body>
+</html>
