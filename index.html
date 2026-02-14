@@ -123,84 +123,45 @@ border:1px solid white;
 
 </div>
 
-<script>
+<script type="module">
 
-let mesas=[];
-let mesaActual=null;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getDatabase, ref, set, push, onValue, update, remove } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
-for(let i=1;i<=13;i++){
-mesas.push({
-numero:i,
-estado:'libre',
-pedidos:[],
-total:0
+// CONFIGURACIÓN DE TU PROYECTO
+const firebaseConfig = {
+  apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
+  authDomain: "sistema-meseros.firebaseapp.com",
+  databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
+  projectId: "sistema-meseros",
+  storageBucket: "sistema-meseros.firebasestorage.app",
+  messagingSenderId: "35929303202",
+  appId: "1:35929303202:web:c787500b3117443d4dcffb"
+};
+
+// INICIALIZAR FIREBASE
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+// ===== EJEMPLO DE ESTRUCTURA DE MESAS =====
+
+// Crear o actualizar mesa
+function actualizarMesa(numeroMesa, datosMesa){
+    update(ref(database, 'mesas/' + numeroMesa), datosMesa);
+}
+
+// Escuchar cambios en tiempo real
+onValue(ref(database, 'mesas'), (snapshot) => {
+    const data = snapshot.val();
+    console.log("Estado actual de mesas:", data);
 });
-}
 
-function renderMesas(){
-const cont=document.getElementById("mesas");
-cont.innerHTML="";
-
-mesas.forEach(m=>{
-const div=document.createElement("div");
-div.className="mesa "+m.estado;
-div.innerText="Mesa "+m.numero;
-div.onclick=()=>abrirMesa(m.numero);
-cont.appendChild(div);
-});
-}
-
-function abrirMesa(numero){
-mesaActual=mesas[numero-1];
-document.getElementById("mesas").style.display="none";
-document.getElementById("pedido").style.display="block";
-document.getElementById("tituloMesa").innerText="Mesa "+numero;
-renderPedido();
-}
-
-function agregarProducto(nombre,precio){
-mesaActual.pedidos.push({nombre,precio});
-mesaActual.total+=precio;
-if(mesaActual.estado==='libre'){
-mesaActual.estado='sin_atender';
-}
-renderPedido();
-renderMesas();
-}
-
-function renderPedido(){
-const lista=document.getElementById("listaPedido");
-lista.innerHTML="";
-mesaActual.pedidos.forEach(p=>{
-const div=document.createElement("div");
-div.className="producto";
-div.innerHTML=`<span>${p.nombre}</span><span>S/${p.precio}</span>`;
-lista.appendChild(div);
-});
-document.getElementById("total").innerText=mesaActual.total;
-}
-
-function cambiarEstado(estado){
-mesaActual.estado=estado;
-renderMesas();
-}
-
-function cerrarMesa(){
-mesaActual.pedidos=[];
-mesaActual.total=0;
-mesaActual.estado='libre';
-renderMesas();
-volverMesas();
-}
-
-function volverMesas(){
-document.getElementById("pedido").style.display="none";
-document.getElementById("mesas").style.display="grid";
-}
-
-renderMesas();
+// Ejemplo para marcar mesa como ocupada
+// actualizarMesa(1, { estado: "sin atender", total: 0 });
 
 </script>
 
 </body>
 </html>
+
