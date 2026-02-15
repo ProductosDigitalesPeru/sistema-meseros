@@ -8,7 +8,7 @@
 <style>
 body{
 margin:0;
-font-family:Arial, sans-serif;
+font-family:Arial;
 background:#0f0f0f;
 color:white;
 }
@@ -26,15 +26,15 @@ display:flex;
 justify-content:space-around;
 padding:10px;
 background:#111;
-font-size:12px;
+font-size:13px;
 }
 
 .color{
-width:14px;
-height:14px;
+width:15px;
+height:15px;
 border-radius:4px;
 display:inline-block;
-margin-right:4px;
+margin-right:5px;
 }
 
 #mesas{
@@ -52,7 +52,7 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.sin_atender{background:#f9a825;color:black;}
+.sin_atender{background:#f9a825;}
 .tomado{background:#ef6c00;}
 .atendido{background:#1565c0;}
 .pagado{background:#6a1b9a;}
@@ -75,10 +75,7 @@ font-size:13px;
 border:none;
 border-radius:8px;
 font-weight:bold;
-}
-
-.estados button:disabled{
-opacity:0.3;
+color:white;
 }
 
 .activo{
@@ -86,9 +83,13 @@ outline:2px solid white;
 }
 
 .sin_btn{background:#f9a825;color:black;}
-.tom_btn{background:#ef6c00;color:white;}
-.ate_btn{background:#1565c0;color:white;}
-.pag_btn{background:#6a1b9a;color:white;}
+.tom_btn{background:#ef6c00;}
+.ate_btn{background:#1565c0;}
+.pag_btn{background:#6a1b9a;}
+
+.estados button:disabled{
+opacity:0.3;
+}
 
 input{
 width:100%;
@@ -146,10 +147,65 @@ border-radius:8px;
 margin-top:10px;
 }
 
+/* LOGIN */
+#login{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#000;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:9999;
+}
+
+.login-box{
+background:#111;
+padding:30px;
+border-radius:12px;
+text-align:center;
+width:80%;
+max-width:300px;
+}
+
+.login-box input{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:6px;
+border:none;
+font-size:16px;
+}
+
+.login-box button{
+width:100%;
+padding:10px;
+border:none;
+background:#f9a825;
+font-weight:bold;
+border-radius:6px;
+}
+
+#errorPin{
+color:red;
+font-size:14px;
+}
 </style>
 </head>
 
 <body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <h2>🔒 Acceso Sistema</h2>
+    <input type="password" id="pinInput" placeholder="Ingrese PIN">
+    <button onclick="verificarPin()">Ingresar</button>
+    <p id="errorPin"></p>
+  </div>
+</div>
 
 <h1>Sistema Mesas</h1>
 
@@ -174,6 +230,8 @@ margin-top:10px;
 
 <input type="text" id="buscador" placeholder="Buscar plato..." onkeyup="buscarPlato()">
 
+<button onclick="cargarCategorias()">← Volver a categorías</button>
+
 <div id="categorias"></div>
 
 <h3>Pedido</h3>
@@ -189,6 +247,17 @@ margin-top:10px;
 
 <script>
 
+const PIN_CORRECTO = "1234";
+
+function verificarPin(){
+let ingreso = document.getElementById("pinInput").value;
+if(ingreso === PIN_CORRECTO){
+document.getElementById("login").style.display="none";
+}else{
+document.getElementById("errorPin").innerText="PIN incorrecto";
+}
+}
+
 var firebaseConfig = {
   apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
   authDomain: "sistema-meseros.firebaseapp.com",
@@ -202,8 +271,7 @@ var database = firebase.database();
 let mesaActual=null;
 let estadoActual=1;
 
-/* CREAR 13 MESAS SI NO EXISTEN */
-database.ref("mesas").once("value").then(snapshot=>{
+database.ref("mesas").once("value",function(snapshot){
 if(!snapshot.exists()){
 for(let i=1;i<=13;i++){
 database.ref("mesas/"+i).set({
@@ -219,25 +287,12 @@ database.ref("mesas").on("value",snapshot=>{
 let data=snapshot.val()||{};
 let cont=document.getElementById("mesas");
 cont.innerHTML="";
-
 for(let i=1;i<=13;i++){
-
-let estado = 1;
-
-if(data[i] && data[i].estado){
-estado = data[i].estado;
-}
-
-let clase =
-estado==1 ? "sin_atender" :
-estado==2 ? "tomado" :
-estado==3 ? "atendido" :
-"pagado";
-
-cont.innerHTML+=`
-<div class="mesa ${clase}" onclick="abrirMesa(${i})">
-Mesa ${i}
-</div>`;
+let estado=data[i]?.estado||1;
+let clase = estado==1?"sin_atender":
+estado==2?"tomado":
+estado==3?"atendido":"pagado";
+cont.innerHTML+=`<div class="mesa ${clase}" onclick="abrirMesa(${i})">Mesa ${i}</div>`;
 }
 });
 }
@@ -248,8 +303,8 @@ document.getElementById("mesas").style.display="none";
 document.getElementById("pedido").style.display="block";
 document.getElementById("tituloMesa").innerText="Mesa "+num;
 
-database.ref("mesas/"+num+"/estado").once("value").then(snap=>{
-estadoActual = snap.val() || 1;
+database.ref("mesas/"+num+"/estado").once("value",snap=>{
+estadoActual=snap.val()||1;
 actualizarBotones();
 });
 
@@ -258,50 +313,35 @@ cargarCategorias();
 }
 
 function actualizarBotones(){
-
 for(let i=1;i<=4;i++){
 let btn=document.getElementById("btn"+i);
 btn.disabled=true;
 btn.classList.remove("activo");
 }
-
-/* ACTUAL */
 document.getElementById("btn"+estadoActual).classList.add("activo");
-
-/* HABILITAR SOLO EL SIGUIENTE */
-if(estadoActual < 4){
+if(estadoActual<4){
 document.getElementById("btn"+(estadoActual+1)).disabled=false;
 }
-
 }
 
 function cambiarEstado(nuevo){
-
 if(nuevo==4){
-
 if(confirm("¿Confirmar pago y cerrar mesa?")){
-
 database.ref("mesas/"+mesaActual+"/pedido").remove();
 database.ref("mesas/"+mesaActual+"/estado").set(1);
-
 volverMesas();
 }
-
-return;
-}
-
+}else{
 database.ref("mesas/"+mesaActual+"/estado").set(nuevo);
 estadoActual=nuevo;
 actualizarBotones();
-
+}
 }
 
 function volverMesas(){
 document.getElementById("pedido").style.display="none";
 document.getElementById("mesas").style.display="grid";
 }
-
-/* PLATOS */
 
 let platos={
 "Ceviches":[
@@ -320,22 +360,13 @@ function cargarCategorias(){
 let cont=document.getElementById("categorias");
 cont.innerHTML="";
 for(let categoria in platos){
-cont.innerHTML+=`
-<div class="categoria" onclick="mostrarPlatos('${categoria}')">
-${categoria}
-</div>`;
+cont.innerHTML+=`<div class="categoria" onclick="mostrarPlatos('${categoria}')">${categoria}</div>`;
 }
 }
 
 function mostrarPlatos(cat){
 let cont=document.getElementById("categorias");
-
-cont.innerHTML=`
-<div class="categoria" onclick="cargarCategorias()" style="background:#444;">
-⬅ Volver a categorías
-</div>
-`;
-
+cont.innerHTML="";
 platos[cat].forEach(p=>{
 cont.innerHTML+=`
 <div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})">
@@ -343,6 +374,23 @@ cont.innerHTML+=`
 <span>S/${p.precio}</span>
 </div>`;
 });
+}
+
+function buscarPlato(){
+let texto=document.getElementById("buscador").value.toLowerCase();
+let cont=document.getElementById("categorias");
+cont.innerHTML="";
+for(let cat in platos){
+platos[cat].forEach(p=>{
+if(p.nombre.toLowerCase().includes(texto)){
+cont.innerHTML+=`
+<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})">
+<span>${p.nombre}</span>
+<span>S/${p.precio}</span>
+</div>`;
+}
+});
+}
 }
 
 function agregarProducto(nombre,precio){
@@ -358,7 +406,6 @@ let data=snap.val()||{};
 let lista=document.getElementById("listaPedido");
 let total=0;
 lista.innerHTML="";
-
 for(let key in data){
 total+=data[key].precio;
 lista.innerHTML+=`
@@ -367,7 +414,6 @@ lista.innerHTML+=`
 <button class="eliminar" onclick="eliminar('${key}')">x</button>
 </div>`;
 }
-
 document.getElementById("total").innerText=total;
 });
 }
@@ -377,17 +423,8 @@ database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
 }
 
 cargarMesas();
-
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
 
