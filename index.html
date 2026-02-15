@@ -6,7 +6,6 @@
 <title>Sistema Mesas</title>
 
 <style>
-
 body{
 margin:0;
 font-family:Arial;
@@ -53,9 +52,10 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.sin_atender{background:#f9a825;}
+.sin_atender{background:#f9a825;} /* amarillo */
 .tomado{background:#ef6c00;}
 .atendido{background:#1565c0;}
+.pagado{background:#6a1b9a;}
 
 #pedido{
 display:none;
@@ -77,14 +77,18 @@ border-radius:8px;
 font-weight:bold;
 }
 
-.estados button:disabled{
-opacity:0.3;
+.activo{
+outline:2px solid white;
 }
 
 .sin_btn{background:#f9a825;color:black;}
 .tom_btn{background:#ef6c00;color:white;}
 .ate_btn{background:#1565c0;color:white;}
 .pag_btn{background:#6a1b9a;color:white;}
+
+.estados button:disabled{
+opacity:0.3;
+}
 
 input{
 width:100%;
@@ -99,6 +103,14 @@ background:#222;
 padding:8px;
 margin:6px 0;
 border-radius:6px;
+cursor:pointer;
+}
+
+.plato{
+display:flex;
+justify-content:space-between;
+padding:6px;
+border-bottom:1px solid #333;
 cursor:pointer;
 }
 
@@ -145,16 +157,16 @@ margin-top:10px;
 <div><span class="color" style="background:#f9a825"></span>1 Sin atender</div>
 <div><span class="color" style="background:#ef6c00"></span>2 Pedido tomado</div>
 <div><span class="color" style="background:#1565c0"></span>3 Atendido</div>
+<div><span class="color" style="background:#6a1b9a"></span>4 Pagado</div>
 </div>
 
 <div id="mesas"></div>
 
 <div id="pedido">
-
 <h2 id="tituloMesa"></h2>
 
 <div class="estados">
-<button id="btn1" class="sin_btn" onclick="cambiarEstado(1)">1 Sin atender</button>
+<button id="btn1" class="sin_btn">1 Sin atender</button>
 <button id="btn2" class="tom_btn" onclick="cambiarEstado(2)">2 Pedido tomado</button>
 <button id="btn3" class="ate_btn" onclick="cambiarEstado(3)">3 Atendido</button>
 <button id="btn4" class="pag_btn" onclick="cambiarEstado(4)">4 Pagado</button>
@@ -170,7 +182,6 @@ margin-top:10px;
 <div class="total">Total: S/ <span id="total">0</span></div>
 
 <button class="volver" onclick="volverMesas()">Volver</button>
-
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -179,10 +190,10 @@ margin-top:10px;
 <script>
 
 var firebaseConfig = {
-  apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
-  authDomain: "sistema-meseros.firebaseapp.com",
-  databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
-  projectId: "sistema-meseros",
+apiKey: "TU_API_KEY_AQUI",
+authDomain: "TU_AUTH_DOMAIN",
+databaseURL: "TU_DATABASE_URL",
+projectId: "TU_PROJECT_ID",
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -209,7 +220,9 @@ let cont=document.getElementById("mesas");
 cont.innerHTML="";
 for(let i=1;i<=13;i++){
 let estado=data[i]?.estado||1;
-let clase = estado==1?"sin_atender":estado==2?"tomado":"atendido";
+let clase = estado==1?"sin_atender":
+estado==2?"tomado":
+estado==3?"atendido":"pagado";
 cont.innerHTML+=`<div class="mesa ${clase}" onclick="abrirMesa(${i})">Mesa ${i}</div>`;
 }
 });
@@ -227,12 +240,18 @@ actualizarBotones();
 });
 
 cargarPedido();
+cargarCategorias();
 }
 
 function actualizarBotones(){
 for(let i=1;i<=4;i++){
-document.getElementById("btn"+i).disabled=true;
+let btn=document.getElementById("btn"+i);
+btn.disabled=true;
+btn.classList.remove("activo");
 }
+
+document.getElementById("btn"+estadoActual).classList.add("activo");
+
 if(estadoActual<4){
 document.getElementById("btn"+(estadoActual+1)).disabled=false;
 }
@@ -258,10 +277,44 @@ document.getElementById("mesas").style.display="grid";
 }
 
 let platos={
-"Ceviches":[{nombre:"Ceviche",precio:26}],
-"Arroces":[{nombre:"Arroz",precio:26}],
-"Bebidas":[{nombre:"Limonada",precio:12}]
+"Ceviches":[
+{nombre:"Ceviche clásico",precio:26},
+{nombre:"Ceviche mixto",precio:32}
+],
+"Chicharrones":[
+{nombre:"Chicharrón de pescado",precio:28}
+],
+"Bebidas":[
+{nombre:"Limonada",precio:12}
+]
 };
+
+function cargarCategorias(){
+let cont=document.getElementById("categorias");
+cont.innerHTML="";
+for(let categoria in platos){
+cont.innerHTML+=`<div class="categoria" onclick="mostrarPlatos('${categoria}')">${categoria}</div>`;
+}
+}
+
+function mostrarPlatos(cat){
+let cont=document.getElementById("categorias");
+cont.innerHTML="";
+platos[cat].forEach(p=>{
+cont.innerHTML+=`
+<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})">
+<span>${p.nombre}</span>
+<span>S/${p.precio}</span>
+</div>`;
+});
+}
+
+function agregarProducto(nombre,precio){
+database.ref("mesas/"+mesaActual+"/pedido").push({
+nombre:nombre,
+precio:precio
+});
+}
 
 function cargarPedido(){
 database.ref("mesas/"+mesaActual+"/pedido").on("value",snap=>{
@@ -288,7 +341,7 @@ database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
 cargarMesas();
 
 </script>
-
 </body>
 </html>
+
 
