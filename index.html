@@ -309,7 +309,13 @@ cont.innerHTML+=`<div class="categoria" onclick="mostrarPlatos('${categoria}')">
 
 function mostrarPlatos(cat){
 let cont=document.getElementById("categorias");
-cont.innerHTML="";
+
+cont.innerHTML=`
+<div class="categoria" onclick="cargarCategorias()" style="background:#444;">
+⬅ Volver a categorías
+</div>
+`;
+
 platos[cat].forEach(p=>{
 cont.innerHTML+=`
 <div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})">
@@ -353,6 +359,7 @@ cargarMesas();
 </script>
 </body>
 </html>
+
 
 
 
