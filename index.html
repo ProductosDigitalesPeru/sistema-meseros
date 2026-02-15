@@ -6,6 +6,7 @@
 <title>Sistema Meseros</title>
 
 <style>
+
 body{
 margin:0;
 font-family:Arial, sans-serif;
@@ -21,6 +22,26 @@ background:#000;
 font-size:18px;
 }
 
+.leyenda{
+display:flex;
+justify-content:space-around;
+padding:10px;
+font-size:13px;
+background:#111;
+}
+
+.leyenda div{
+display:flex;
+align-items:center;
+gap:5px;
+}
+
+.color{
+width:15px;
+height:15px;
+border-radius:4px;
+}
+
 #mesas{
 display:grid;
 grid-template-columns:repeat(2,1fr);
@@ -34,15 +55,13 @@ border-radius:10px;
 text-align:center;
 font-size:16px;
 cursor:pointer;
+font-weight:bold;
 }
 
-.libre{background:#2e7d32;}
 .sin_atender{background:#f9a825;}
 .tomado{background:#ef6c00;}
-.cocina{background:#c62828;}
 .atendido{background:#1565c0;}
-.pagar{background:#6a1b9a;}
-.pagado{background:#424242;}
+.pagado{background:#2e7d32;}
 
 #pedido{
 display:none;
@@ -59,9 +78,26 @@ font-size:14px;
 cursor:pointer;
 }
 
+input{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:8px;
+border:none;
+}
+
+.categoria{
+background:#222;
+padding:8px;
+margin:8px 0;
+border-radius:6px;
+cursor:pointer;
+}
+
 .producto{
 display:flex;
 justify-content:space-between;
+align-items:center;
 margin:5px 0;
 font-size:14px;
 }
@@ -72,24 +108,31 @@ font-size:18px;
 font-weight:bold;
 }
 
-.select-estado{
-width:100%;
-padding:10px;
-margin:10px 0;
-border-radius:8px;
-}
-
 .volver{
 background:#000;
 color:white;
 border:1px solid white;
 }
+
+.eliminar{
+background:#c62828;
+padding:5px 8px;
+font-size:12px;
+border-radius:5px;
+}
+
 </style>
 </head>
-
 <body>
 
 <h1>Sistema Mesas</h1>
+
+<div class="leyenda">
+<div><div class="color" style="background:#f9a825"></div> Sin atender</div>
+<div><div class="color" style="background:#ef6c00"></div> Pedido tomado</div>
+<div><div class="color" style="background:#1565c0"></div> Atendido</div>
+<div><div class="color" style="background:#2e7d32"></div> Pagado</div>
+</div>
 
 <div id="mesas"></div>
 
@@ -97,28 +140,23 @@ border:1px solid white;
 
 <h2 id="tituloMesa"></h2>
 
-<select class="select-estado" onchange="cambiarEstado(this.value)">
+<select onchange="cambiarEstado(this.value)">
 <option value="sin_atender">Sin atender</option>
 <option value="tomado">Pedido tomado</option>
-<option value="cocina">En cocina</option>
 <option value="atendido">Atendido</option>
-<option value="pagar">Por pagar</option>
 <option value="pagado">Pagado</option>
 </select>
 
-<h3>Agregar Productos</h3>
+<input type="text" id="buscador" placeholder="Buscar plato..." onkeyup="buscarPlato()">
 
-<button onclick="agregarProducto('Ceviche',26)">Ceviche S/26</button>
-<button onclick="agregarProducto('Arroz',26)">Arroz S/26</button>
-<button onclick="agregarProducto('Limonada',12)">Limonada S/12</button>
+<div id="categorias"></div>
 
 <h3>Pedido</h3>
 <div id="listaPedido"></div>
 
 <div class="total">Total: S/ <span id="total">0</span></div>
 
-<button onclick="cerrarMesa()">Cerrar Mesa</button>
-<button class="volver" onclick="volverMesas()">Volver</button>
+<button onclick="volverMesas()" class="volver">Volver</button>
 
 </div>
 
@@ -126,14 +164,15 @@ border:1px solid white;
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+
 var firebaseConfig = {
-apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
-authDomain: "sistema-meseros.firebaseapp.com",
-databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
-projectId: "sistema-meseros",
-storageBucket: "sistema-meseros.firebasestorage.app",
-messagingSenderId: "35929303202",
-appId: "1:35929303202:web:c787500b3117443d4dcffb"
+apiKey: "TU_API_KEY",
+authDomain: "TU_AUTH_DOMAIN",
+databaseURL: "TU_DATABASE_URL",
+projectId: "TU_PROJECT_ID",
+storageBucket: "TU_STORAGE",
+messagingSenderId: "TU_ID",
+appId: "TU_APP_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -141,84 +180,38 @@ var database = firebase.database();
 
 let mesaActual = null;
 
-function crearMesas(){
-for(let i=1;i<=13;i++){
-database.ref("mesas/"+i).once("value", snapshot=>{
-if(!snapshot.exists()){
-database.ref("mesas/"+i).set({
-estado:"libre",
-total:0,
-productos:[]
-});
-}
-});
-}
-}
+let platos = {
+"Ceviches":[
+{nombre:"Ceviche Clásico",precio:26},
+{nombre:"Ceviche Mixto",precio:32}
+],
+"Arroces":[
+{nombre:"Arroz con Mariscos",precio:28}
+],
+"Bebidas":[
+{nombre:"Limonada",precio:12}
+]
+};
 
-function renderMesas(){
+function cargarMesas(){
 database.ref("mesas").on("value", snapshot=>{
-const contenedor=document.getElementById("mesas");
+let data = snapshot.val() || {};
+let contenedor = document.getElementById("mesas");
 contenedor.innerHTML="";
-snapshot.forEach(child=>{
-let mesa=child.val();
-let div=document.createElement("div");
-div.className="mesa "+mesa.estado;
-div.innerHTML="Mesa "+child.key+"<br>S/ "+mesa.total;
-div.onclick=()=>abrirMesa(child.key);
-contenedor.appendChild(div);
-});
+for(let i=1;i<=13;i++){
+let estado = data[i]?.estado || "sin_atender";
+contenedor.innerHTML+=`<div class="mesa ${estado}" onclick="abrirMesa(${i})">Mesa ${i}</div>`;
+}
 });
 }
 
-function abrirMesa(numero){
-mesaActual=numero;
+function abrirMesa(num){
+mesaActual = num;
 document.getElementById("mesas").style.display="none";
 document.getElementById("pedido").style.display="block";
-document.getElementById("tituloMesa").innerText="Mesa "+numero;
-
-database.ref("mesas/"+numero).on("value", snapshot=>{
-let mesa=snapshot.val();
-document.getElementById("total").innerText=mesa.total;
-let lista=document.getElementById("listaPedido");
-lista.innerHTML="";
-mesa.productos.forEach(p=>{
-lista.innerHTML+=`<div class="producto">${p.nombre} - S/ ${p.precio}</div>`;
-});
-});
-}
-
-function agregarProducto(nombre,precio){
-if(!mesaActual) return;
-
-database.ref("mesas/"+mesaActual).once("value", snapshot=>{
-let mesa=snapshot.val();
-
-if(!mesa.productos){
-mesa.productos=[];
-}
-
-if(!mesa.total){
-mesa.total=0;
-}
-
-mesa.productos.push({nombre,precio});
-mesa.total+=precio;
-
-database.ref("mesas/"+mesaActual).set(mesa);
-});
-}
-
-function cambiarEstado(estado){
-database.ref("mesas/"+mesaActual+"/estado").set(estado);
-}
-
-function cerrarMesa(){
-database.ref("mesas/"+mesaActual).set({
-estado:"libre",
-total:0,
-productos:[]
-});
-volverMesas();
+document.getElementById("tituloMesa").innerText="Mesa "+num;
+cargarPedido();
+cargarCategorias();
 }
 
 function volverMesas(){
@@ -226,12 +219,75 @@ document.getElementById("pedido").style.display="none";
 document.getElementById("mesas").style.display="grid";
 }
 
-crearMesas();
-renderMesas();
+function cambiarEstado(estado){
+database.ref("mesas/"+mesaActual+"/estado").set(estado);
+}
+
+function cargarCategorias(){
+let cont = document.getElementById("categorias");
+cont.innerHTML="";
+for(let cat in platos){
+cont.innerHTML+=`<div class="categoria" onclick="mostrarPlatos('${cat}')">${cat}</div>`;
+}
+}
+
+function mostrarPlatos(cat){
+let cont = document.getElementById("categorias");
+cont.innerHTML="";
+platos[cat].forEach(p=>{
+cont.innerHTML+=`<button onclick="agregarPlato('${p.nombre}',${p.precio})">${p.nombre} - S/${p.precio}</button>`;
+});
+}
+
+function agregarPlato(nombre,precio){
+database.ref("mesas/"+mesaActual+"/pedido").push({
+nombre:nombre,
+precio:precio
+});
+}
+
+function cargarPedido(){
+database.ref("mesas/"+mesaActual+"/pedido").on("value", snapshot=>{
+let data = snapshot.val() || {};
+let lista = document.getElementById("listaPedido");
+let total = 0;
+lista.innerHTML="";
+for(let key in data){
+total += data[key].precio;
+lista.innerHTML+=`
+<div class="producto">
+${data[key].nombre} - S/${data[key].precio}
+<button class="eliminar" onclick="eliminar('${key}')">X</button>
+</div>`;
+}
+document.getElementById("total").innerText=total;
+});
+}
+
+function eliminar(key){
+database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
+}
+
+function buscarPlato(){
+let texto = document.getElementById("buscador").value.toLowerCase();
+let cont = document.getElementById("categorias");
+cont.innerHTML="";
+for(let cat in platos){
+platos[cat].forEach(p=>{
+if(p.nombre.toLowerCase().includes(texto)){
+cont.innerHTML+=`<button onclick="agregarPlato('${p.nombre}',${p.precio})">${p.nombre} - S/${p.precio}</button>`;
+}
+});
+}
+}
+
+cargarMesas();
+
 </script>
 
 </body>
 </html>
+
 
 
 
