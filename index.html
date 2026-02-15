@@ -9,7 +9,7 @@
 
 body{
 margin:0;
-font-family:Arial, sans-serif;
+font-family:Arial;
 background:#0f0f0f;
 color:white;
 }
@@ -30,16 +30,12 @@ background:#111;
 font-size:13px;
 }
 
-.leyenda div{
-display:flex;
-align-items:center;
-gap:6px;
-}
-
 .color{
 width:15px;
 height:15px;
 border-radius:4px;
+display:inline-block;
+margin-right:5px;
 }
 
 #mesas{
@@ -60,30 +56,35 @@ cursor:pointer;
 .sin_atender{background:#f9a825;}
 .tomado{background:#ef6c00;}
 .atendido{background:#1565c0;}
-.pagado{background:#6a1b9a;}
 
 #pedido{
 display:none;
 padding:15px;
 }
 
-button{
-width:100%;
-padding:12px;
-margin:5px 0;
+.estados{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+margin-bottom:15px;
+}
+
+.estados button{
+padding:8px;
+font-size:13px;
 border:none;
 border-radius:8px;
-font-size:14px;
-cursor:pointer;
 font-weight:bold;
 }
 
-button.sin_atender{ background:#f9a825; color:black; }
-button.tomado{ background:#ef6c00; color:white; }
-button.atendido{ background:#1565c0; color:white; }
-button.pagado{ background:#6a1b9a; color:white; }
+.estados button:disabled{
+opacity:0.3;
+}
 
-button:hover{opacity:0.9;}
+.sin_btn{background:#f9a825;color:black;}
+.tom_btn{background:#ef6c00;color:white;}
+.ate_btn{background:#1565c0;color:white;}
+.pag_btn{background:#6a1b9a;color:white;}
 
 input{
 width:100%;
@@ -96,7 +97,7 @@ border:none;
 .categoria{
 background:#222;
 padding:8px;
-margin:8px 0;
+margin:6px 0;
 border-radius:6px;
 cursor:pointer;
 }
@@ -105,8 +106,17 @@ cursor:pointer;
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin:5px 0;
+margin:4px 0;
 font-size:14px;
+}
+
+.eliminar{
+background:#c62828;
+font-size:10px;
+padding:2px 6px;
+border:none;
+border-radius:4px;
+cursor:pointer;
 }
 
 .total{
@@ -115,17 +125,13 @@ font-size:18px;
 font-weight:bold;
 }
 
-.eliminar{
-background:#c62828;
-padding:5px 8px;
-font-size:12px;
-border-radius:5px;
-}
-
 .volver{
 background:#000;
 color:white;
 border:1px solid white;
+padding:10px;
+border-radius:8px;
+margin-top:10px;
 }
 
 </style>
@@ -136,9 +142,9 @@ border:1px solid white;
 <h1>Sistema Mesas</h1>
 
 <div class="leyenda">
-<div><div class="color" style="background:#f9a825"></div> Sin atender</div>
-<div><div class="color" style="background:#ef6c00"></div> Pedido tomado</div>
-<div><div class="color" style="background:#1565c0"></div> Atendido</div>
+<div><span class="color" style="background:#f9a825"></span>1 Sin atender</div>
+<div><span class="color" style="background:#ef6c00"></span>2 Pedido tomado</div>
+<div><span class="color" style="background:#1565c0"></span>3 Atendido</div>
 </div>
 
 <div id="mesas"></div>
@@ -147,12 +153,12 @@ border:1px solid white;
 
 <h2 id="tituloMesa"></h2>
 
-<h3>Estado de la Mesa</h3>
-
-<button class="sin_atender" onclick="cambiarEstado('sin_atender')">Sin Atender</button>
-<button class="tomado" onclick="cambiarEstado('tomado')">Pedido Tomado</button>
-<button class="atendido" onclick="cambiarEstado('atendido')">Atendido</button>
-<button class="pagado" onclick="cambiarEstado('pagado')">Pagado</button>
+<div class="estados">
+<button id="btn1" class="sin_btn" onclick="cambiarEstado(1)">1 Sin atender</button>
+<button id="btn2" class="tom_btn" onclick="cambiarEstado(2)">2 Pedido tomado</button>
+<button id="btn3" class="ate_btn" onclick="cambiarEstado(3)">3 Atendido</button>
+<button id="btn4" class="pag_btn" onclick="cambiarEstado(4)">4 Pagado</button>
+</div>
 
 <input type="text" id="buscador" placeholder="Buscar plato..." onkeyup="buscarPlato()">
 
@@ -177,49 +183,73 @@ var firebaseConfig = {
   authDomain: "sistema-meseros.firebaseapp.com",
   databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
   projectId: "sistema-meseros",
-  storageBucket: "sistema-meseros.firebasestorage.app",
-  messagingSenderId: "35929303202",
-  appId: "1:35929303202:web:c787500b3117443d4dcffb"
 };
 
 firebase.initializeApp(firebaseConfig);
 var database = firebase.database();
 
-let mesaActual = null;
+let mesaActual=null;
+let estadoActual=1;
 
-// Inicializar 13 mesas si no existen
-database.ref("mesas").once("value", function(snapshot){
-    if(!snapshot.exists()){
-        for(let i=1; i<=13; i++){
-            database.ref("mesas/"+i).set({
-                estado: "sin_atender",
-                pedido: {},
-                total: 0
-            });
-        }
-    }
+database.ref("mesas").once("value",function(snapshot){
+if(!snapshot.exists()){
+for(let i=1;i<=13;i++){
+database.ref("mesas/"+i).set({
+estado:1,
+pedido:{}
+});
+}
+}
 });
 
-// Cargar mesas en tiempo real
 function cargarMesas(){
-database.ref("mesas").on("value", snapshot=>{
-let data = snapshot.val() || {};
-let contenedor = document.getElementById("mesas");
-contenedor.innerHTML="";
+database.ref("mesas").on("value",snapshot=>{
+let data=snapshot.val()||{};
+let cont=document.getElementById("mesas");
+cont.innerHTML="";
 for(let i=1;i<=13;i++){
-let estado = data[i]?.estado || "sin_atender";
-contenedor.innerHTML+=`<div class="mesa ${estado}" onclick="abrirMesa(${i})">Mesa ${i}</div>`;
+let estado=data[i]?.estado||1;
+let clase = estado==1?"sin_atender":estado==2?"tomado":"atendido";
+cont.innerHTML+=`<div class="mesa ${clase}" onclick="abrirMesa(${i})">Mesa ${i}</div>`;
 }
 });
 }
 
 function abrirMesa(num){
-mesaActual = num;
+mesaActual=num;
 document.getElementById("mesas").style.display="none";
 document.getElementById("pedido").style.display="block";
 document.getElementById("tituloMesa").innerText="Mesa "+num;
+
+database.ref("mesas/"+num+"/estado").once("value",snap=>{
+estadoActual=snap.val()||1;
+actualizarBotones();
+});
+
 cargarPedido();
-cargarCategorias();
+}
+
+function actualizarBotones(){
+for(let i=1;i<=4;i++){
+document.getElementById("btn"+i).disabled=true;
+}
+if(estadoActual<4){
+document.getElementById("btn"+(estadoActual+1)).disabled=false;
+}
+}
+
+function cambiarEstado(nuevo){
+if(nuevo==4){
+if(confirm("¿Confirmar pago y cerrar mesa?")){
+database.ref("mesas/"+mesaActual+"/pedido").remove();
+database.ref("mesas/"+mesaActual+"/estado").set(1);
+volverMesas();
+}
+}else{
+database.ref("mesas/"+mesaActual+"/estado").set(nuevo);
+estadoActual=nuevo;
+actualizarBotones();
+}
 }
 
 function volverMesas(){
@@ -227,74 +257,24 @@ document.getElementById("pedido").style.display="none";
 document.getElementById("mesas").style.display="grid";
 }
 
-function cambiarEstado(nuevoEstado){
-
-if(nuevoEstado === "pagado"){
-
-if(confirm("¿Seguro que deseas cerrar esta mesa?")){
-
-database.ref("mesas/"+mesaActual+"/pedido").remove();
-database.ref("mesas/"+mesaActual+"/total").set(0);
-database.ref("mesas/"+mesaActual+"/estado").set("sin_atender");
-
-alert("Mesa cerrada correctamente ✔");
-
-volverMesas();
-}
-
-}else{
-database.ref("mesas/"+mesaActual+"/estado").set(nuevoEstado);
-}
-}
-
-let platos = {
-"Ceviches":[
-{nombre:"Ceviche Clásico",precio:26},
-{nombre:"Ceviche Mixto",precio:32}
-],
-"Arroces":[
-{nombre:"Arroz con Mariscos",precio:28}
-],
-"Bebidas":[
-{nombre:"Limonada",precio:12}
-]
+let platos={
+"Ceviches":[{nombre:"Ceviche",precio:26}],
+"Arroces":[{nombre:"Arroz",precio:26}],
+"Bebidas":[{nombre:"Limonada",precio:12}]
 };
 
-function cargarCategorias(){
-let cont = document.getElementById("categorias");
-cont.innerHTML="";
-for(let cat in platos){
-cont.innerHTML+=`<div class="categoria" onclick="mostrarPlatos('${cat}')">${cat}</div>`;
-}
-}
-
-function mostrarPlatos(cat){
-let cont = document.getElementById("categorias");
-cont.innerHTML="";
-platos[cat].forEach(p=>{
-cont.innerHTML+=`<button onclick="agregarPlato('${p.nombre}',${p.precio})">${p.nombre} - S/${p.precio}</button>`;
-});
-}
-
-function agregarPlato(nombre,precio){
-database.ref("mesas/"+mesaActual+"/pedido").push({
-nombre:nombre,
-precio:precio
-});
-}
-
 function cargarPedido(){
-database.ref("mesas/"+mesaActual+"/pedido").on("value", snapshot=>{
-let data = snapshot.val() || {};
-let lista = document.getElementById("listaPedido");
-let total = 0;
+database.ref("mesas/"+mesaActual+"/pedido").on("value",snap=>{
+let data=snap.val()||{};
+let lista=document.getElementById("listaPedido");
+let total=0;
 lista.innerHTML="";
 for(let key in data){
-total += data[key].precio;
+total+=data[key].precio;
 lista.innerHTML+=`
 <div class="producto">
-${data[key].nombre} - S/${data[key].precio}
-<button class="eliminar" onclick="eliminar('${key}')">X</button>
+<span>${data[key].nombre} - S/${data[key].precio}</span>
+<button class="eliminar" onclick="eliminar('${key}')">x</button>
 </div>`;
 }
 document.getElementById("total").innerText=total;
@@ -305,22 +285,10 @@ function eliminar(key){
 database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
 }
 
-function buscarPlato(){
-let texto = document.getElementById("buscador").value.toLowerCase();
-let cont = document.getElementById("categorias");
-cont.innerHTML="";
-for(let cat in platos){
-platos[cat].forEach(p=>{
-if(p.nombre.toLowerCase().includes(texto)){
-cont.innerHTML+=`<button onclick="agregarPlato('${p.nombre}',${p.precio})">${p.nombre} - S/${p.precio}</button>`;
-}
-});
-}
-}
-
 cargarMesas();
 
 </script>
 
 </body>
 </html>
+
