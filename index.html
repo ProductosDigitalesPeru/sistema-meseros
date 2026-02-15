@@ -6,7 +6,6 @@
 <title>Sistema Meseros</title>
 
 <style>
-
 body{
 margin:0;
 font-family:Arial, sans-serif;
@@ -85,9 +84,9 @@ background:#000;
 color:white;
 border:1px solid white;
 }
-
 </style>
 </head>
+
 <body>
 
 <h1>Sistema Mesas</h1>
@@ -123,23 +122,100 @@ border:1px solid white;
 
 </div>
 
-<!-- Firebase versión clásica compatible -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-  var firebaseConfig = {
-    apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
-    authDomain: "sistema-meseros.firebaseapp.com",
-    databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
-    projectId: "sistema-meseros",
-    storageBucket: "sistema-meseros.firebasestorage.app",
-    messagingSenderId: "35929303202",
-    appId: "1:35929303202:web:c787500b3117443d4dcffb"
-  };
+var firebaseConfig = {
+apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
+authDomain: "sistema-meseros.firebaseapp.com",
+databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
+projectId: "sistema-meseros",
+storageBucket: "sistema-meseros.firebasestorage.app",
+messagingSenderId: "35929303202",
+appId: "1:35929303202:web:c787500b3117443d4dcffb"
+};
 
-  firebase.initializeApp(firebaseConfig);
-  var database = firebase.database();
+firebase.initializeApp(firebaseConfig);
+var database = firebase.database();
+
+let mesaActual = null;
+
+function crearMesas(){
+for(let i=1;i<=13;i++){
+database.ref("mesas/"+i).once("value", snapshot=>{
+if(!snapshot.exists()){
+database.ref("mesas/"+i).set({
+estado:"libre",
+total:0,
+productos:[]
+});
+}
+});
+}
+}
+
+function renderMesas(){
+database.ref("mesas").on("value", snapshot=>{
+const contenedor=document.getElementById("mesas");
+contenedor.innerHTML="";
+snapshot.forEach(child=>{
+let mesa=child.val();
+let div=document.createElement("div");
+div.className="mesa "+mesa.estado;
+div.innerHTML="Mesa "+child.key+"<br>S/ "+mesa.total;
+div.onclick=()=>abrirMesa(child.key);
+contenedor.appendChild(div);
+});
+});
+}
+
+function abrirMesa(numero){
+mesaActual=numero;
+document.getElementById("mesas").style.display="none";
+document.getElementById("pedido").style.display="block";
+document.getElementById("tituloMesa").innerText="Mesa "+numero;
+
+database.ref("mesas/"+numero).on("value", snapshot=>{
+let mesa=snapshot.val();
+document.getElementById("total").innerText=mesa.total;
+let lista=document.getElementById("listaPedido");
+lista.innerHTML="";
+mesa.productos.forEach(p=>{
+lista.innerHTML+=`<div class="producto">${p.nombre} - S/ ${p.precio}</div>`;
+});
+});
+}
+
+function agregarProducto(nombre,precio){
+database.ref("mesas/"+mesaActual).once("value", snapshot=>{
+let mesa=snapshot.val();
+mesa.productos.push({nombre,precio});
+mesa.total+=precio;
+database.ref("mesas/"+mesaActual).set(mesa);
+});
+}
+
+function cambiarEstado(estado){
+database.ref("mesas/"+mesaActual+"/estado").set(estado);
+}
+
+function cerrarMesa(){
+database.ref("mesas/"+mesaActual).set({
+estado:"libre",
+total:0,
+productos:[]
+});
+volverMesas();
+}
+
+function volverMesas(){
+document.getElementById("pedido").style.display="none";
+document.getElementById("mesas").style.display="grid";
+}
+
+crearMesas();
+renderMesas();
 </script>
 
 </body>
