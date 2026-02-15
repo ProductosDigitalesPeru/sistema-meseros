@@ -219,8 +219,25 @@ document.getElementById("pedido").style.display="none";
 document.getElementById("mesas").style.display="grid";
 }
 
-function cambiarEstado(estado){
-database.ref("mesas/"+mesaActual+"/estado").set(estado);
+function cambiarEstado(nuevoEstado){
+
+    if(nuevoEstado === "pagado"){
+        if(confirm("¿Seguro que deseas cerrar esta mesa?")){
+
+            database.ref("mesas/"+mesaActual+"/pedido").remove();
+            database.ref("mesas/"+mesaActual+"/total").set(0);
+            database.ref("mesas/"+mesaActual+"/estado").set("sin_atender");
+
+            alert("Mesa cerrada correctamente ✔");
+
+            volverMesas();
+
+        } else {
+            return;
+        }
+    } else {
+        database.ref("mesas/"+mesaActual+"/estado").set(nuevoEstado);
+    }
 }
 
 function cargarCategorias(){
@@ -287,6 +304,7 @@ cargarMesas();
 
 </body>
 </html>
+
 
 
 
