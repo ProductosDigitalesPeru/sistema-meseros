@@ -222,7 +222,7 @@ let data=snapshot.val()||{};
 let cont=document.getElementById("mesas");
 cont.innerHTML="";
 for(let i=1;i<=13;i++){
-let estado=data[i]?.estado||1;
+let estado = data[i] && data[i].estado ? data[i].estado : 1;
 let clase = estado==1?"sin_atender":
 estado==2?"tomado":
 estado==3?"atendido":"pagado";
@@ -346,6 +346,7 @@ cargarMesas();
 </script>
 </body>
 </html>
+
 
 
 
