@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistema Meseros</title>
+<title>Sistema Mesas</title>
 
 <style>
 
@@ -26,14 +26,14 @@ font-size:18px;
 display:flex;
 justify-content:space-around;
 padding:10px;
-font-size:13px;
 background:#111;
+font-size:13px;
 }
 
 .leyenda div{
 display:flex;
 align-items:center;
-gap:5px;
+gap:6px;
 }
 
 .color{
@@ -53,15 +53,14 @@ padding:10px;
 padding:20px;
 border-radius:10px;
 text-align:center;
-font-size:16px;
-cursor:pointer;
 font-weight:bold;
+cursor:pointer;
 }
 
 .sin_atender{background:#f9a825;}
 .tomado{background:#ef6c00;}
 .atendido{background:#1565c0;}
-.pagado{background:#2e7d32;}
+.pagado{background:#6a1b9a;}
 
 #pedido{
 display:none;
@@ -76,7 +75,15 @@ border:none;
 border-radius:8px;
 font-size:14px;
 cursor:pointer;
+font-weight:bold;
 }
+
+button.sin_atender{ background:#f9a825; color:black; }
+button.tomado{ background:#ef6c00; color:white; }
+button.atendido{ background:#1565c0; color:white; }
+button.pagado{ background:#6a1b9a; color:white; }
+
+button:hover{opacity:0.9;}
 
 input{
 width:100%;
@@ -108,12 +115,6 @@ font-size:18px;
 font-weight:bold;
 }
 
-.volver{
-background:#000;
-color:white;
-border:1px solid white;
-}
-
 .eliminar{
 background:#c62828;
 padding:5px 8px;
@@ -121,8 +122,15 @@ font-size:12px;
 border-radius:5px;
 }
 
+.volver{
+background:#000;
+color:white;
+border:1px solid white;
+}
+
 </style>
 </head>
+
 <body>
 
 <h1>Sistema Mesas</h1>
@@ -131,7 +139,6 @@ border-radius:5px;
 <div><div class="color" style="background:#f9a825"></div> Sin atender</div>
 <div><div class="color" style="background:#ef6c00"></div> Pedido tomado</div>
 <div><div class="color" style="background:#1565c0"></div> Atendido</div>
-<div><div class="color" style="background:#2e7d32"></div> Pagado</div>
 </div>
 
 <div id="mesas"></div>
@@ -140,12 +147,12 @@ border-radius:5px;
 
 <h2 id="tituloMesa"></h2>
 
-<select onchange="cambiarEstado(this.value)">
-<option value="sin_atender">Sin atender</option>
-<option value="tomado">Pedido tomado</option>
-<option value="atendido">Atendido</option>
-<option value="pagado">Pagado</option>
-</select>
+<h3>Estado de la Mesa</h3>
+
+<button class="sin_atender" onclick="cambiarEstado('sin_atender')">Sin Atender</button>
+<button class="tomado" onclick="cambiarEstado('tomado')">Pedido Tomado</button>
+<button class="atendido" onclick="cambiarEstado('atendido')">Atendido</button>
+<button class="pagado" onclick="cambiarEstado('pagado')">Pagado</button>
 
 <input type="text" id="buscador" placeholder="Buscar plato..." onkeyup="buscarPlato()">
 
@@ -156,7 +163,7 @@ border-radius:5px;
 
 <div class="total">Total: S/ <span id="total">0</span></div>
 
-<button onclick="volverMesas()" class="volver">Volver</button>
+<button class="volver" onclick="volverMesas()">Volver</button>
 
 </div>
 
@@ -178,7 +185,9 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var database = firebase.database();
 
-// Crear 13 mesas si no existen
+let mesaActual = null;
+
+// Inicializar 13 mesas si no existen
 database.ref("mesas").once("value", function(snapshot){
     if(!snapshot.exists()){
         for(let i=1; i<=13; i++){
@@ -190,22 +199,8 @@ database.ref("mesas").once("value", function(snapshot){
         }
     }
 });
-  
-let mesaActual = null;
 
-let platos = {
-"Ceviches":[
-{nombre:"Ceviche Clásico",precio:26},
-{nombre:"Ceviche Mixto",precio:32}
-],
-"Arroces":[
-{nombre:"Arroz con Mariscos",precio:28}
-],
-"Bebidas":[
-{nombre:"Limonada",precio:12}
-]
-};
-
+// Cargar mesas en tiempo real
 function cargarMesas(){
 database.ref("mesas").on("value", snapshot=>{
 let data = snapshot.val() || {};
@@ -234,24 +229,36 @@ document.getElementById("mesas").style.display="grid";
 
 function cambiarEstado(nuevoEstado){
 
-    if(nuevoEstado === "pagado"){
-        if(confirm("¿Seguro que deseas cerrar esta mesa?")){
+if(nuevoEstado === "pagado"){
 
-            database.ref("mesas/"+mesaActual+"/pedido").remove();
-            database.ref("mesas/"+mesaActual+"/total").set(0);
-            database.ref("mesas/"+mesaActual+"/estado").set("sin_atender");
+if(confirm("¿Seguro que deseas cerrar esta mesa?")){
 
-            alert("Mesa cerrada correctamente ✔");
+database.ref("mesas/"+mesaActual+"/pedido").remove();
+database.ref("mesas/"+mesaActual+"/total").set(0);
+database.ref("mesas/"+mesaActual+"/estado").set("sin_atender");
 
-            volverMesas();
+alert("Mesa cerrada correctamente ✔");
 
-        } else {
-            return;
-        }
-    } else {
-        database.ref("mesas/"+mesaActual+"/estado").set(nuevoEstado);
-    }
+volverMesas();
 }
+
+}else{
+database.ref("mesas/"+mesaActual+"/estado").set(nuevoEstado);
+}
+}
+
+let platos = {
+"Ceviches":[
+{nombre:"Ceviche Clásico",precio:26},
+{nombre:"Ceviche Mixto",precio:32}
+],
+"Arroces":[
+{nombre:"Arroz con Mariscos",precio:28}
+],
+"Bebidas":[
+{nombre:"Limonada",precio:12}
+]
+};
 
 function cargarCategorias(){
 let cont = document.getElementById("categorias");
@@ -317,10 +324,3 @@ cargarMesas();
 
 </body>
 </html>
-
-
-
-
-
-
-
