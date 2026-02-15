@@ -178,6 +178,19 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var database = firebase.database();
 
+// Crear 13 mesas si no existen
+database.ref("mesas").once("value", function(snapshot){
+    if(!snapshot.exists()){
+        for(let i=1; i<=13; i++){
+            database.ref("mesas/"+i).set({
+                estado: "sin_atender",
+                pedido: {},
+                total: 0
+            });
+        }
+    }
+});
+  
 let mesaActual = null;
 
 let platos = {
@@ -304,6 +317,7 @@ cargarMesas();
 
 </body>
 </html>
+
 
 
 
