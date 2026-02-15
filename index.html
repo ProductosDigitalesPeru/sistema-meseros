@@ -8,7 +8,7 @@
 <style>
 body{
 margin:0;
-font-family:Arial;
+font-family:Arial, sans-serif;
 background:#0f0f0f;
 color:white;
 }
@@ -26,15 +26,15 @@ display:flex;
 justify-content:space-around;
 padding:10px;
 background:#111;
-font-size:13px;
+font-size:12px;
 }
 
 .color{
-width:15px;
-height:15px;
+width:14px;
+height:14px;
 border-radius:4px;
 display:inline-block;
-margin-right:5px;
+margin-right:4px;
 }
 
 #mesas{
@@ -52,7 +52,7 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.sin_atender{background:#f9a825;} /* amarillo */
+.sin_atender{background:#f9a825;color:black;}
 .tomado{background:#ef6c00;}
 .atendido{background:#1565c0;}
 .pagado{background:#6a1b9a;}
@@ -77,6 +77,10 @@ border-radius:8px;
 font-weight:bold;
 }
 
+.estados button:disabled{
+opacity:0.3;
+}
+
 .activo{
 outline:2px solid white;
 }
@@ -85,10 +89,6 @@ outline:2px solid white;
 .tom_btn{background:#ef6c00;color:white;}
 .ate_btn{background:#1565c0;color:white;}
 .pag_btn{background:#6a1b9a;color:white;}
-
-.estados button:disabled{
-opacity:0.3;
-}
 
 input{
 width:100%;
@@ -190,13 +190,10 @@ margin-top:10px;
 <script>
 
 var firebaseConfig = {
-  apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
-  authDomain: "sistema-meseros.firebaseapp.com",
-  databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
-  projectId: "sistema-meseros",
-  storageBucket: "sistema-meseros.firebasestorage.app",
-  messagingSenderId: "35929303202",
-  appId: "1:35929303202:web:c787500b3117443d4dcffb"
+apiKey: "TU_API_KEY_AQUI",
+authDomain: "TU_AUTH_DOMAIN",
+databaseURL: "TU_DATABASE_URL",
+projectId: "TU_PROJECT_ID",
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -247,15 +244,13 @@ cargarCategorias();
 }
 
 function actualizarBotones(){
-
 for(let i=1;i<=4;i++){
 let btn=document.getElementById("btn"+i);
 btn.disabled=true;
 btn.classList.remove("activo");
 }
 
-let actual=document.getElementById("btn"+estadoActual);
-actual.classList.add("activo");
+document.getElementById("btn"+estadoActual).classList.add("activo");
 
 if(estadoActual==1){
 document.getElementById("btn2").disabled=false;
@@ -267,18 +262,21 @@ if(estadoActual==3){
 document.getElementById("btn4").disabled=false;
 }
 }
+
 function cambiarEstado(nuevo){
+
 if(nuevo==4){
 if(confirm("¿Confirmar pago y cerrar mesa?")){
 database.ref("mesas/"+mesaActual+"/pedido").remove();
 database.ref("mesas/"+mesaActual+"/estado").set(1);
 volverMesas();
 }
-}else{
+return;
+}
+
 database.ref("mesas/"+mesaActual+"/estado").set(nuevo);
 estadoActual=nuevo;
 actualizarBotones();
-}
 }
 
 function volverMesas(){
@@ -354,9 +352,28 @@ function eliminar(key){
 database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
 }
 
+function buscarPlato(){
+let texto=document.getElementById("buscador").value.toLowerCase();
+let cont=document.getElementById("categorias");
+cont.innerHTML="";
+
+for(let categoria in platos){
+platos[categoria].forEach(p=>{
+if(p.nombre.toLowerCase().includes(texto)){
+cont.innerHTML+=`
+<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})">
+<span>${p.nombre}</span>
+<span>S/${p.precio}</span>
+</div>`;
+}
+});
+}
+}
+
 cargarMesas();
 
 </script>
+
 </body>
 </html>
 
