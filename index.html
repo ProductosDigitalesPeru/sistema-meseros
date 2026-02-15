@@ -202,7 +202,8 @@ var database = firebase.database();
 let mesaActual=null;
 let estadoActual=1;
 
-database.ref("mesas").once("value",function(snapshot){
+/* CREAR 13 MESAS SI NO EXISTEN */
+database.ref("mesas").once("value").then(snapshot=>{
 if(!snapshot.exists()){
 for(let i=1;i<=13;i++){
 database.ref("mesas/"+i).set({
@@ -218,12 +219,25 @@ database.ref("mesas").on("value",snapshot=>{
 let data=snapshot.val()||{};
 let cont=document.getElementById("mesas");
 cont.innerHTML="";
+
 for(let i=1;i<=13;i++){
-let estado = data[i] && data[i].estado ? data[i].estado : 1;
-let clase = estado==1?"sin_atender":
-estado==2?"tomado":
-estado==3?"atendido":"pagado";
-cont.innerHTML+=`<div class="mesa ${clase}" onclick="abrirMesa(${i})">Mesa ${i}</div>`;
+
+let estado = 1;
+
+if(data[i] && data[i].estado){
+estado = data[i].estado;
+}
+
+let clase =
+estado==1 ? "sin_atender" :
+estado==2 ? "tomado" :
+estado==3 ? "atendido" :
+"pagado";
+
+cont.innerHTML+=`
+<div class="mesa ${clase}" onclick="abrirMesa(${i})">
+Mesa ${i}
+</div>`;
 }
 });
 }
@@ -234,8 +248,8 @@ document.getElementById("mesas").style.display="none";
 document.getElementById("pedido").style.display="block";
 document.getElementById("tituloMesa").innerText="Mesa "+num;
 
-database.ref("mesas/"+num+"/estado").once("value",snap=>{
-estadoActual=snap.val()||1;
+database.ref("mesas/"+num+"/estado").once("value").then(snap=>{
+estadoActual = snap.val() || 1;
 actualizarBotones();
 });
 
@@ -244,45 +258,50 @@ cargarCategorias();
 }
 
 function actualizarBotones(){
+
 for(let i=1;i<=4;i++){
 let btn=document.getElementById("btn"+i);
 btn.disabled=true;
 btn.classList.remove("activo");
 }
 
+/* ACTUAL */
 document.getElementById("btn"+estadoActual).classList.add("activo");
 
-if(estadoActual==1){
-document.getElementById("btn2").disabled=false;
+/* HABILITAR SOLO EL SIGUIENTE */
+if(estadoActual < 4){
+document.getElementById("btn"+(estadoActual+1)).disabled=false;
 }
-if(estadoActual==2){
-document.getElementById("btn3").disabled=false;
-}
-if(estadoActual==3){
-document.getElementById("btn4").disabled=false;
-}
+
 }
 
 function cambiarEstado(nuevo){
 
 if(nuevo==4){
+
 if(confirm("¿Confirmar pago y cerrar mesa?")){
+
 database.ref("mesas/"+mesaActual+"/pedido").remove();
 database.ref("mesas/"+mesaActual+"/estado").set(1);
+
 volverMesas();
 }
+
 return;
 }
 
 database.ref("mesas/"+mesaActual+"/estado").set(nuevo);
 estadoActual=nuevo;
 actualizarBotones();
+
 }
 
 function volverMesas(){
 document.getElementById("pedido").style.display="none";
 document.getElementById("mesas").style.display="grid";
 }
+
+/* PLATOS */
 
 let platos={
 "Ceviches":[
@@ -301,7 +320,10 @@ function cargarCategorias(){
 let cont=document.getElementById("categorias");
 cont.innerHTML="";
 for(let categoria in platos){
-cont.innerHTML+=`<div class="categoria" onclick="mostrarPlatos('${categoria}')">${categoria}</div>`;
+cont.innerHTML+=`
+<div class="categoria" onclick="mostrarPlatos('${categoria}')">
+${categoria}
+</div>`;
 }
 }
 
@@ -336,6 +358,7 @@ let data=snap.val()||{};
 let lista=document.getElementById("listaPedido");
 let total=0;
 lista.innerHTML="";
+
 for(let key in data){
 total+=data[key].precio;
 lista.innerHTML+=`
@@ -344,6 +367,7 @@ lista.innerHTML+=`
 <button class="eliminar" onclick="eliminar('${key}')">x</button>
 </div>`;
 }
+
 document.getElementById("total").innerText=total;
 });
 }
@@ -352,30 +376,13 @@ function eliminar(key){
 database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
 }
 
-function buscarPlato(){
-let texto=document.getElementById("buscador").value.toLowerCase();
-let cont=document.getElementById("categorias");
-cont.innerHTML="";
-
-for(let categoria in platos){
-platos[categoria].forEach(p=>{
-if(p.nombre.toLowerCase().includes(texto)){
-cont.innerHTML+=`
-<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})">
-<span>${p.nombre}</span>
-<span>S/${p.precio}</span>
-</div>`;
-}
-});
-}
-}
-
 cargarMesas();
 
 </script>
 
 </body>
 </html>
+
 
 
 
