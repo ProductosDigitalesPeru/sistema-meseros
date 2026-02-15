@@ -188,10 +188,22 @@ lista.innerHTML+=`<div class="producto">${p.nombre} - S/ ${p.precio}</div>`;
 }
 
 function agregarProducto(nombre,precio){
+if(!mesaActual) return;
+
 database.ref("mesas/"+mesaActual).once("value", snapshot=>{
 let mesa=snapshot.val();
+
+if(!mesa.productos){
+mesa.productos=[];
+}
+
+if(!mesa.total){
+mesa.total=0;
+}
+
 mesa.productos.push({nombre,precio});
 mesa.total+=precio;
+
 database.ref("mesas/"+mesaActual).set(mesa);
 });
 }
@@ -220,5 +232,6 @@ renderMesas();
 
 </body>
 </html>
+
 
 
