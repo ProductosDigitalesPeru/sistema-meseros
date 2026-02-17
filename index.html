@@ -463,6 +463,33 @@ database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
 }
 
 cargarMesas();
+
+// ESCUCHAR NOTIFICACIONES DE COCINA
+database.ref("notificaciones").on("child_added",function(snapshot){
+
+let data = snapshot.val();
+
+mostrarNotificacion("🍽 Plato listo - Mesa "+data.mesa+" - "+data.plato);
+
+// Eliminar notificación después de mostrarla
+database.ref("notificaciones/"+snapshot.key).remove();
+
+});
+
+function mostrarNotificacion(texto){
+
+let div = document.getElementById("notificacion");
+div.innerText = texto;
+div.style.display="block";
+
+document.getElementById("sonidoNoti").play();
+
+setTimeout(()=>{
+div.style.display="none";
+},4000);
+
+}
+
 </script>
 
 <div id="notificacion"
@@ -488,6 +515,7 @@ box-shadow:0 0 15px rgba(0,0,0,0.5);
   
 </body>
 </html>
+
 
 
 
