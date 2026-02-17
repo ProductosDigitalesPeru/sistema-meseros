@@ -325,6 +325,36 @@ document.getElementById("btn"+(estadoActual+1)).disabled=false;
 }
 
 function cambiarEstado(nuevo){
+
+if(nuevo==2){
+
+database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
+
+let pedidoActual = snap.val();
+
+if(!pedidoActual){
+alert("No hay platos en el pedido");
+return;
+}
+
+let nuevoPedidoRef = database.ref("cocina").push();
+
+nuevoPedidoRef.set({
+mesa: mesaActual,
+estado: "nuevo",
+hora: Date.now(),
+platos: pedidoActual
+});
+
+database.ref("mesas/"+mesaActual+"/estado").set(2);
+estadoActual=2;
+actualizarBotones();
+
+});
+
+return;
+}
+
 if(nuevo==4){
 if(confirm("¿Confirmar pago y cerrar mesa?")){
 database.ref("mesas/"+mesaActual+"/pedido").remove();
@@ -427,4 +457,5 @@ cargarMesas();
 
 </body>
 </html>
+
 
