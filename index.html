@@ -337,13 +337,23 @@ alert("No hay platos en el pedido");
 return;
 }
 
+let platosProcesados = {};
+
+for(let key in pedidoActual){
+platosProcesados[key] = {
+nombre: pedidoActual[key].nombre,
+precio: pedidoActual[key].precio,
+estado: "pendiente"
+};
+}
+
 let nuevoPedidoRef = database.ref("cocina").push();
 
 nuevoPedidoRef.set({
 mesa: mesaActual,
 estado: "nuevo",
 hora: Date.now(),
-platos: pedidoActual
+platos: platosProcesados
 });
 
 database.ref("mesas/"+mesaActual+"/estado").set(2);
@@ -457,5 +467,6 @@ cargarMesas();
 
 </body>
 </html>
+
 
 
