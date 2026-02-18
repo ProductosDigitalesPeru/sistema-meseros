@@ -331,21 +331,29 @@ if(nuevo==2){
 database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
 
 let pedidoActual = snap.val();
-
 if(!pedidoActual){
 alert("No hay platos en el pedido");
 return;
 }
 
-let platosProcesados = {};
+let platosCocina = {};
 
 for(let key in pedidoActual){
-platosProcesados[key] = {
+
+if(pedidoActual[key].tipo=="cocina"){
+
+platosCocina[key] = {
 nombre: pedidoActual[key].nombre,
 precio: pedidoActual[key].precio,
 estado: "pendiente"
 };
+
 }
+
+}
+
+// Solo enviar si hay algo de cocina
+if(Object.keys(platosCocina).length>0){
 
 let nuevoPedidoRef = database.ref("cocina").push();
 
@@ -353,8 +361,10 @@ nuevoPedidoRef.set({
 mesa: mesaActual,
 estado: "nuevo",
 hora: Date.now(),
-platos: platosProcesados
+platos: platosCocina
 });
+
+}
 
 database.ref("mesas/"+mesaActual+"/estado").set(2);
 estadoActual=2;
@@ -515,6 +525,7 @@ box-shadow:0 0 15px rgba(0,0,0,0.5);
   
 </body>
 </html>
+
 
 
 
