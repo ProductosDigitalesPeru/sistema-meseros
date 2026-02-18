@@ -326,11 +326,13 @@ document.getElementById("btn"+(estadoActual+1)).disabled=false;
 
 function cambiarEstado(nuevo){
 
+// CUANDO PRESIONA "PEDIDO TOMADO"
 if(nuevo==2){
 
 database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
 
 let pedidoActual = snap.val();
+
 if(!pedidoActual){
 alert("No hay platos en el pedido");
 return;
@@ -340,7 +342,8 @@ let platosCocina = {};
 
 for(let key in pedidoActual){
 
-if(pedidoActual[key].tipo=="cocina"){
+// SOLO ENVIAR A COCINA LOS TIPO "cocina"
+if(pedidoActual[key].tipo && pedidoActual[key].tipo=="cocina"){
 
 platosCocina[key] = {
 nombre: pedidoActual[key].nombre,
@@ -352,12 +355,10 @@ estado: "pendiente"
 
 }
 
-// Solo enviar si hay algo de cocina
-if(Object.keys(platosCocina).length>0){
+// SI HAY PLATOS DE COCINA → SE ENVÍA
+if(Object.keys(platosCocina).length > 0){
 
-let nuevoPedidoRef = database.ref("cocina").push();
-
-nuevoPedidoRef.set({
+database.ref("cocina").push({
 mesa: mesaActual,
 estado: "nuevo",
 hora: Date.now(),
@@ -366,6 +367,7 @@ platos: platosCocina
 
 }
 
+// ACTUALIZAR ESTADO DE LA MESA
 database.ref("mesas/"+mesaActual+"/estado").set(2);
 estadoActual=2;
 actualizarBotones();
@@ -375,17 +377,28 @@ actualizarBotones();
 return;
 }
 
+
+// CONFIRMAR PAGO
 if(nuevo==4){
+
 if(confirm("¿Confirmar pago y cerrar mesa?")){
+
 database.ref("mesas/"+mesaActual+"/pedido").remove();
 database.ref("mesas/"+mesaActual+"/estado").set(1);
+
 volverMesas();
+
 }
-}else{
+
+return;
+}
+
+
+// OTROS ESTADOS
 database.ref("mesas/"+mesaActual+"/estado").set(nuevo);
 estadoActual=nuevo;
 actualizarBotones();
-}
+
 }
 
 function volverMesas(){
@@ -558,6 +571,7 @@ box-shadow:0 0 15px rgba(0,0,0,0.5);
   
 </body>
 </html>
+
 
 
 
