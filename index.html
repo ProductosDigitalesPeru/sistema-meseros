@@ -451,20 +451,41 @@ precio:precio
 }
 
 function cargarPedido(){
+
 database.ref("mesas/"+mesaActual+"/pedido").on("value",snap=>{
+
 let data=snap.val()||{};
 let lista=document.getElementById("listaPedido");
 let total=0;
 lista.innerHTML="";
+
 for(let key in data){
+
 total+=data[key].precio;
+
+let esBebida = data[key].tipo=="bebida";
+
 lista.innerHTML+=`
 <div class="producto">
-<span>${data[key].nombre} - S/${data[key].precio}</span>
+<span>
+${esBebida ? 
+`<span onclick="marcarBebida('${key}')"
+style="cursor:pointer;">
+${data[key].servido?"✔ ":"⬜ "}
+</span>` 
+: ""}
+
+${data[key].nombre} - S/${data[key].precio}
+</span>
+
 <button class="eliminar" onclick="eliminar('${key}')">x</button>
-</div>`;
+</div>
+`;
+
 }
+
 document.getElementById("total").innerText=total;
+
 });
 }
 
@@ -525,6 +546,7 @@ box-shadow:0 0 15px rgba(0,0,0,0.5);
   
 </body>
 </html>
+
 
 
 
