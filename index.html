@@ -166,10 +166,12 @@ document.getElementById("btn"+(estadoActual+1)).disabled=false;
 
 function cambiarEstado(nuevo){
 
-// 🔒 VALIDACIÓN BEBIDAS ANTES DE AVANZAR
+// 🔒 VALIDACIONES PARA ATENDIDO Y PAGADO
 if(nuevo==3 || nuevo==4){
 
+// 1️⃣ VALIDAR BEBIDAS
 database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
+
 let pedidoActual=snap.val();
 if(!pedidoActual){
 alert("No hay pedido");
@@ -179,26 +181,58 @@ return;
 let bebidaPendiente=false;
 
 for(let key in pedidoActual){
-if(pedidoActual[key].tipo=="bebida" && pedidoActual[key].servido==false){
+if(pedidoActual[key].tipo=="bebida" && pedidoActual[key].servido!=true){
 bebidaPendiente=true;
 break;
 }
 }
 
 if(bebidaPendiente){
-alert("⚠️ Hay bebidas sin servir. Marque ✔ antes de continuar.");
+alert("⚠️ Hay bebidas sin servir.");
 return;
 }
 
-// ✅ Si no hay bebidas pendientes continúa flujo normal
+// 2️⃣ VALIDAR COCINA
+database.ref("cocina").once("value",snapCocina=>{
+
+let cocinaData=snapCocina.val();
+let cocinaPendiente=false;
+
+if(cocinaData){
+
+for(let id in cocinaData){
+
+if(cocinaData[id].mesa==mesaActual){
+
+// Si el pedido no está finalizado
+if(cocinaData[id].estado!="finalizado"){
+cocinaPendiente=true;
+break;
+}
+
+}
+
+}
+
+}
+
+if(cocinaPendiente){
+alert("👨‍🍳 Cocina aún no termina este pedido.");
+return;
+}
+
+// ✅ TODO OK → continuar
 continuarCambioEstado(nuevo);
+
+});
 
 });
 
 return;
 }
 
-// Estado 2 → enviar cocina
+
+// 🔥 ESTADO 2 → ENVÍA A COCINA
 if(nuevo==2){
 
 database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
@@ -370,5 +404,6 @@ setTimeout(()=>{div.style.display="none";},4000);
 
 </body>
 </html>
+
 
 
