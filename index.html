@@ -106,10 +106,10 @@ document.getElementById("errorPin").innerText="PIN incorrecto";
 }
 
 var firebaseConfig={
-apiKey:"AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
-authDomain:"sistema-meseros.firebaseapp.com",
-databaseURL:"https://sistema-meseros-default-rtdb.firebaseio.com",
-projectId:"sistema-meseros"
+apiKey:"TU_API_KEY",
+authDomain:"TU_AUTH_DOMAIN",
+databaseURL:"TU_DATABASE_URL",
+projectId:"TU_PROJECT_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -118,13 +118,19 @@ var database=firebase.database();
 let mesaActual=null;
 let estadoActual=1;
 
+/* CREAR MESAS SI NO EXISTEN */
 database.ref("mesas").once("value",snap=>{
 if(!snap.exists()){
 for(let i=1;i<=13;i++){
-database.ref("mesas/"+i).set({estado:1,pedido:{}});
+database.ref("mesas/"+i).set({
+estado:1,
+pedido:{}
+});
 }
 }
 });
+
+/* ================= MESAS ================= */
 
 function cargarMesas(){
 database.ref("mesas").on("value",snap=>{
@@ -133,8 +139,14 @@ let cont=document.getElementById("mesas");
 cont.innerHTML="";
 for(let i=1;i<=13;i++){
 let estado=data[i]?.estado||1;
-let clase=estado==1?"sin_atender":estado==2?"tomado":estado==3?"atendido":"pagado";
-cont.innerHTML+=`<div class="mesa ${clase}" onclick="abrirMesa(${i})">Mesa ${i}</div>`;
+let clase=estado==1?"sin_atender":
+estado==2?"tomado":
+estado==3?"atendido":
+"pagado";
+cont.innerHTML+=
+`<div class="mesa ${clase}" onclick="abrirMesa(${i})">
+Mesa ${i}
+</div>`;
 }
 });
 }
@@ -144,13 +156,17 @@ mesaActual=num;
 document.getElementById("mesas").style.display="none";
 document.getElementById("pedido").style.display="block";
 document.getElementById("tituloMesa").innerText="Mesa "+num;
+
 database.ref("mesas/"+num+"/estado").once("value",snap=>{
 estadoActual=snap.val()||1;
 actualizarBotones();
 });
+
 cargarPedido();
 cargarCategorias();
 }
+
+/* ================= BOTONES ESTADO ================= */
 
 function actualizarBotones(){
 for(let i=1;i<=4;i++){
@@ -164,86 +180,112 @@ document.getElementById("btn"+(estadoActual+1)).disabled=false;
 }
 }
 
-function cambiarEstadoMesa(mesa, nuevoEstado){
+function cambiarEstado(nuevo){
 
-// Si intenta pasar a Atendido (3) o Pagado (4)
-if(nuevoEstado == 3 || nuevoEstado == 4){
+// No permitir retroceder ni saltar
+if(nuevo != estadoActual+1) return;
 
-database.ref("cocina").once("value", snapshot=>{
+/* ======== PASAR A PEDIDO TOMADO ======== */
+if(nuevo==2){
 
-let pedidos = snapshot.val();
-let hayPendiente = false;
+// Enviar a cocina SOLO platos tipo cocina
+database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
 
-if(pedidos){
+let pedido=snap.val()||{};
+let platosCocina={};
+let tieneCocina=false;
 
-for(let id in pedidos){
-
-let pedido = pedidos[id];
-
-if(pedido.mesa == mesa){
-
-for(let key in pedido.platos){
-
-if(pedido.platos[key].estado != "listo"){
-hayPendiente = true;
-break;
+for(let key in pedido){
+if(pedido[key].tipo=="cocina"){
+platosCocina[key]={
+nombre:pedido[key].nombre,
+estado:"pendiente"
+};
+tieneCocina=true;
+}
 }
 
-}
-
-if(hayPendiente) break;
-
-}
-
-}
-
-}
-
-if(hayPendiente){
-alert("⚠️ Cocina aún no termina todos los platos");
-return;
-}
-
-// Verificar bandera cocinaFinalizada
-database.ref("mesas/"+mesa+"/cocinaFinalizada").once("value",snap=>{
-
-if(!snap.val()){
-alert("⚠️ Cocina no ha finalizado el pedido");
-return;
-}
-
-// Si pasa todas las validaciones → permitir cambio
-database.ref("mesas/"+mesa+"/estado").set(nuevoEstado);
-
+if(tieneCocina){
+database.ref("cocina").push({
+mesa:mesaActual,
+hora:Date.now(),
+estado:"nuevo",
+platos:platosCocina
 });
-
-});
-
-}else{
-
-// Estados 1 y 2 normales
-database.ref("mesas/"+mesa+"/estado").set(nuevoEstado);
-
 }
 
-}
-
-function continuarCambioEstado(nuevo){
-
-if(nuevo==4){
-if(confirm("¿Confirmar pago y cerrar mesa?")){
-database.ref("mesas/"+mesaActual+"/pedido").remove();
-database.ref("mesas/"+mesaActual+"/estado").set(1);
-volverMesas();
-}
-return;
-}
-
-database.ref("mesas/"+mesaActual+"/estado").set(nuevo);
-estadoActual=nuevo;
+database.ref("mesas/"+mesaActual+"/estado").set(2);
+estadoActual=2;
 actualizarBotones();
 
+});
+
+return;
 }
+
+/* ======== PASAR A ATENDIDO ======== */
+if(nuevo==3){
+
+// 1️⃣ Verificar cocina terminó
+database.ref("cocina").once("value",snap=>{
+let pedidos=snap.val();
+let pendiente=false;
+
+if(pedidos){
+for(let id in pedidos){
+if(pedidos[id].mesa==mesaActual){
+pendiente=true;
+break;
+}
+}
+}
+
+if(pendiente){
+alert("⚠ Cocina aún no termina el pedido");
+return;
+}
+
+// 2️⃣ Verificar bebidas servidas
+database.ref("mesas/"+mesaActual+"/pedido").once("value",snap2=>{
+let pedido=snap2.val()||{};
+for(let key in pedido){
+if(pedido[key].tipo=="bebida" && !pedido[key].servido){
+alert("⚠ Debes marcar bebidas como servidas");
+return;
+}
+}
+
+// SI TODO OK
+database.ref("mesas/"+mesaActual+"/estado").set(3);
+estadoActual=3;
+actualizarBotones();
+
+});
+
+});
+
+return;
+}
+
+/* ======== PAGAR ======== */
+if(nuevo==4){
+
+if(confirm("¿Confirmar pago y cerrar mesa?")){
+
+database.ref("mesas/"+mesaActual+"/pedido").remove();
+database.ref("mesas/"+mesaActual+"/estado").set(1);
+
+estadoActual=1;
+volverMesas();
+
+}
+
+return;
+}
+
+}
+
+/* ================= PEDIDOS ================= */
 
 function volverMesas(){
 document.getElementById("pedido").style.display="none";
@@ -267,7 +309,10 @@ function cargarCategorias(){
 let cont=document.getElementById("categorias");
 cont.innerHTML="";
 for(let cat in platos){
-cont.innerHTML+=`<div class="categoria" onclick="mostrarPlatos('${cat}')">${cat}</div>`;
+cont.innerHTML+=
+`<div class="categoria" onclick="mostrarPlatos('${cat}')">
+${cat}
+</div>`;
 }
 }
 
@@ -275,21 +320,13 @@ function mostrarPlatos(cat){
 let cont=document.getElementById("categorias");
 cont.innerHTML="";
 platos[cat].forEach(p=>{
-cont.innerHTML+=`<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})"><span>${p.nombre}</span><span>S/${p.precio}</span></div>`;
+cont.innerHTML+=
+`<div class="plato"
+onclick="agregarProducto('${p.nombre}',${p.precio})">
+<span>${p.nombre}</span>
+<span>S/${p.precio}</span>
+</div>`;
 });
-}
-
-function buscarPlato(){
-let texto=document.getElementById("buscador").value.toLowerCase();
-let cont=document.getElementById("categorias");
-cont.innerHTML="";
-for(let cat in platos){
-platos[cat].forEach(p=>{
-if(p.nombre.toLowerCase().includes(texto)){
-cont.innerHTML+=`<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})"><span>${p.nombre}</span><span>S/${p.precio}</span></div>`;
-}
-});
-}
 }
 
 function agregarProducto(nombre,precio){
@@ -319,10 +356,15 @@ let esBebida=data[key].tipo=="bebida";
 lista.innerHTML+=`
 <div class="producto">
 <span>
-${esBebida?`<span onclick="marcarBebida('${key}')" style="cursor:pointer;">${data[key].servido?"✔ ":"⬜ "}</span>`:""}
+${esBebida?
+`<span onclick="marcarBebida('${key}')"
+style="cursor:pointer;">
+${data[key].servido?"✔ ":"⬜ "}
+</span>`:""}
 ${data[key].nombre} - S/${data[key].precio}
 </span>
-<button class="eliminar" onclick="eliminar('${key}')">x</button>
+<button class="eliminar"
+onclick="eliminar('${key}')">x</button>
 </div>`;
 }
 document.getElementById("total").innerText=total;
@@ -330,9 +372,11 @@ document.getElementById("total").innerText=total;
 }
 
 function marcarBebida(key){
-database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido").once("value",snap=>{
+database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido")
+.once("value",snap=>{
 let estado=snap.val()||false;
-database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido").set(!estado);
+database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido")
+.set(!estado);
 });
 }
 
@@ -340,7 +384,7 @@ function eliminar(key){
 database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
 }
 
-cargarMesas();
+/* ================= NOTIFICACIONES ================= */
 
 database.ref("notificaciones").on("child_added",snap=>{
 let data=snap.val();
@@ -356,11 +400,9 @@ document.getElementById("sonidoNoti").play();
 setTimeout(()=>{div.style.display="none";},4000);
 }
 
+cargarMesas();
+
 </script>
 
 </body>
 </html>
-
-
-
-
