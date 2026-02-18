@@ -164,112 +164,68 @@ document.getElementById("btn"+(estadoActual+1)).disabled=false;
 }
 }
 
-function cambiarEstado(nuevo){
+function cambiarEstadoMesa(mesa, nuevoEstado){
 
-// 🔒 VALIDACIONES PARA ATENDIDO Y PAGADO
-if(nuevo==3 || nuevo==4){
+// Si intenta pasar a Atendido (3) o Pagado (4)
+if(nuevoEstado == 3 || nuevoEstado == 4){
 
-// 1️⃣ VALIDAR BEBIDAS
-database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
+database.ref("cocina").once("value", snapshot=>{
 
-let pedidoActual=snap.val();
-if(!pedidoActual){
-alert("No hay pedido");
-return;
-}
+let pedidos = snapshot.val();
+let hayPendiente = false;
 
-let bebidaPendiente=false;
+if(pedidos){
 
-for(let key in pedidoActual){
-if(pedidoActual[key].tipo=="bebida" && pedidoActual[key].servido!=true){
-bebidaPendiente=true;
-break;
-}
-}
+for(let id in pedidos){
 
-if(bebidaPendiente){
-alert("⚠️ Hay bebidas sin servir.");
-return;
-}
+let pedido = pedidos[id];
 
-// 2️⃣ VALIDAR COCINA
-database.ref("cocina").once("value",snapCocina=>{
+if(pedido.mesa == mesa){
 
-let cocinaData=snapCocina.val();
-let cocinaPendiente=false;
+for(let key in pedido.platos){
 
-if(cocinaData){
-
-for(let id in cocinaData){
-
-if(cocinaData[id].mesa==mesaActual){
-
-// Si el pedido no está finalizado
-if(cocinaData[id].estado!="finalizado"){
-cocinaPendiente=true;
+if(pedido.platos[key].estado != "listo"){
+hayPendiente = true;
 break;
 }
 
 }
 
+if(hayPendiente) break;
+
+}
+
 }
 
 }
 
-if(cocinaPendiente){
-alert("👨‍🍳 Cocina aún no termina este pedido.");
+if(hayPendiente){
+alert("⚠️ Cocina aún no termina todos los platos");
 return;
 }
 
-// ✅ TODO OK → continuar
-continuarCambioEstado(nuevo);
+// Verificar bandera cocinaFinalizada
+database.ref("mesas/"+mesa+"/cocinaFinalizada").once("value",snap=>{
 
-});
-
-});
-
+if(!snap.val()){
+alert("⚠️ Cocina no ha finalizado el pedido");
 return;
 }
 
-
-// 🔥 ESTADO 2 → ENVÍA A COCINA
-if(nuevo==2){
-
-database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
-let pedidoActual=snap.val();
-if(!pedidoActual){alert("No hay platos");return;}
-
-let platosCocina={};
-
-for(let key in pedidoActual){
-if(pedidoActual[key].tipo=="cocina"){
-platosCocina[key]={
-nombre:pedidoActual[key].nombre,
-precio:pedidoActual[key].precio,
-estado:"pendiente"
-};
-}
-}
-
-if(Object.keys(platosCocina).length>0){
-database.ref("cocina").push({
-mesa:mesaActual,
-estado:"nuevo",
-hora:Date.now(),
-platos:platosCocina
-});
-}
-
-database.ref("mesas/"+mesaActual+"/estado").set(2);
-estadoActual=2;
-actualizarBotones();
+// Si pasa todas las validaciones → permitir cambio
+database.ref("mesas/"+mesa+"/estado").set(nuevoEstado);
 
 });
 
-return;
+});
+
+}else{
+
+// Estados 1 y 2 normales
+database.ref("mesas/"+mesa+"/estado").set(nuevoEstado);
+
 }
 
-continuarCambioEstado(nuevo);
 }
 
 function continuarCambioEstado(nuevo){
@@ -404,6 +360,7 @@ setTimeout(()=>{div.style.display="none";},4000);
 
 </body>
 </html>
+
 
 
 
