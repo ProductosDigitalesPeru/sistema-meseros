@@ -6,205 +6,52 @@
 <title>Sistema Mesas</title>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#0f0f0f;
-color:white;
-}
-
-h1{
-text-align:center;
-padding:15px;
-margin:0;
-background:#000;
-font-size:18px;
-}
-
-.leyenda{
-display:flex;
-justify-content:space-around;
-padding:10px;
-background:#111;
-font-size:13px;
-}
-
-.color{
-width:15px;
-height:15px;
-border-radius:4px;
-display:inline-block;
-margin-right:5px;
-}
-
-#mesas{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:10px;
-padding:10px;
-}
-
-.mesa{
-padding:20px;
-border-radius:10px;
-text-align:center;
-font-weight:bold;
-cursor:pointer;
-}
-
+body{margin:0;font-family:Arial;background:#0f0f0f;color:white;}
+h1{text-align:center;padding:15px;margin:0;background:#000;font-size:18px;}
+.leyenda{display:flex;justify-content:space-around;padding:10px;background:#111;font-size:13px;}
+.color{width:15px;height:15px;border-radius:4px;display:inline-block;margin-right:5px;}
+#mesas{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px;}
+.mesa{padding:20px;border-radius:10px;text-align:center;font-weight:bold;cursor:pointer;}
 .sin_atender{background:#f9a825;}
 .tomado{background:#ef6c00;}
 .atendido{background:#1565c0;}
 .pagado{background:#6a1b9a;}
-
-#pedido{
-display:none;
-padding:15px;
-}
-
-.estados{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-margin-bottom:15px;
-}
-
-.estados button{
-padding:8px;
-font-size:13px;
-border:none;
-border-radius:8px;
-font-weight:bold;
-color:white;
-}
-
-.activo{
-outline:2px solid white;
-}
-
+#pedido{display:none;padding:15px;}
+.estados{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:15px;}
+.estados button{padding:8px;font-size:13px;border:none;border-radius:8px;font-weight:bold;color:white;}
+.activo{outline:2px solid white;}
 .sin_btn{background:#f9a825;color:black;}
 .tom_btn{background:#ef6c00;}
 .ate_btn{background:#1565c0;}
 .pag_btn{background:#6a1b9a;}
-
-.estados button:disabled{
-opacity:0.3;
-}
-
-input{
-width:100%;
-padding:10px;
-margin:10px 0;
-border-radius:8px;
-border:none;
-}
-
-.categoria{
-background:#222;
-padding:8px;
-margin:6px 0;
-border-radius:6px;
-cursor:pointer;
-}
-
-.plato{
-display:flex;
-justify-content:space-between;
-padding:6px;
-border-bottom:1px solid #333;
-cursor:pointer;
-}
-
-.producto{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin:4px 0;
-font-size:14px;
-}
-
-.eliminar{
-background:#c62828;
-font-size:10px;
-padding:2px 6px;
-border:none;
-border-radius:4px;
-cursor:pointer;
-}
-
-.total{
-margin-top:10px;
-font-size:18px;
-font-weight:bold;
-}
-
-.volver{
-background:#000;
-color:white;
-border:1px solid white;
-padding:10px;
-border-radius:8px;
-margin-top:10px;
-}
-
-/* LOGIN */
-#login{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:#000;
-display:flex;
-justify-content:center;
-align-items:center;
-z-index:9999;
-}
-
-.login-box{
-background:#111;
-padding:30px;
-border-radius:12px;
-text-align:center;
-width:80%;
-max-width:300px;
-}
-
-.login-box input{
-width:100%;
-padding:10px;
-margin:10px 0;
-border-radius:6px;
-border:none;
-font-size:16px;
-}
-
-.login-box button{
-width:100%;
-padding:10px;
-border:none;
-background:#f9a825;
-font-weight:bold;
-border-radius:6px;
-}
-
-#errorPin{
-color:red;
-font-size:14px;
-}
+.estados button:disabled{opacity:0.3;}
+input{width:100%;padding:10px;margin:10px 0;border-radius:8px;border:none;}
+.categoria{background:#222;padding:8px;margin:6px 0;border-radius:6px;cursor:pointer;}
+.plato{display:flex;justify-content:space-between;padding:6px;border-bottom:1px solid #333;cursor:pointer;}
+.producto{display:flex;justify-content:space-between;align-items:center;margin:4px 0;font-size:14px;}
+.eliminar{background:#c62828;font-size:10px;padding:2px 6px;border:none;border-radius:4px;cursor:pointer;}
+.total{margin-top:10px;font-size:18px;font-weight:bold;}
+.volver{background:#000;color:white;border:1px solid white;padding:10px;border-radius:8px;margin-top:10px;}
+#login{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;justify-content:center;align-items:center;z-index:9999;}
+.login-box{background:#111;padding:30px;border-radius:12px;text-align:center;width:80%;max-width:300px;}
+.login-box input{width:100%;padding:10px;margin:10px 0;border-radius:6px;border:none;font-size:16px;}
+.login-box button{width:100%;padding:10px;border:none;background:#f9a825;font-weight:bold;border-radius:6px;}
+#errorPin{color:red;font-size:14px;}
+#notificacion{position:fixed;top:20px;left:50%;transform:translateX(-50%);
+background:#2e7d32;color:white;padding:15px 25px;border-radius:10px;
+font-weight:bold;display:none;z-index:9999;box-shadow:0 0 15px rgba(0,0,0,0.5);}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div id="login">
-  <div class="login-box">
-    <h2>🔒 Acceso Sistema</h2>
-    <input type="password" id="pinInput" placeholder="Ingrese PIN">
-    <button onclick="verificarPin()">Ingresar</button>
-    <p id="errorPin"></p>
-  </div>
+<div class="login-box">
+<h2>🔒 Acceso Sistema</h2>
+<input type="password" id="pinInput" placeholder="Ingrese PIN">
+<button onclick="verificarPin()">Ingresar</button>
+<p id="errorPin"></p>
+</div>
 </div>
 
 <h1>Sistema Mesas</h1>
@@ -229,69 +76,64 @@ font-size:14px;
 </div>
 
 <input type="text" id="buscador" placeholder="Buscar plato..." onkeyup="buscarPlato()">
-
 <button onclick="cargarCategorias()">← Volver a categorías</button>
-
 <div id="categorias"></div>
 
 <h3>Pedido</h3>
 <div id="listaPedido"></div>
-
 <div class="total">Total: S/ <span id="total">0</span></div>
-
 <button class="volver" onclick="volverMesas()">Volver</button>
 </div>
+
+<div id="notificacion"></div>
+
+<audio id="sonidoNoti">
+<source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
+</audio>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
 
-const PIN_CORRECTO = "1234";
-
+const PIN_CORRECTO="1234";
 function verificarPin(){
-let ingreso = document.getElementById("pinInput").value;
-if(ingreso === PIN_CORRECTO){
+if(document.getElementById("pinInput").value===PIN_CORRECTO){
 document.getElementById("login").style.display="none";
 }else{
 document.getElementById("errorPin").innerText="PIN incorrecto";
 }
 }
 
-var firebaseConfig = {
-  apiKey: "AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
-  authDomain: "sistema-meseros.firebaseapp.com",
-  databaseURL: "https://sistema-meseros-default-rtdb.firebaseio.com",
-  projectId: "sistema-meseros",
+var firebaseConfig={
+apiKey:"AIzaSyA8v5XCmOIwUwFa0-fRcNFh-i1gAGQsNfI",
+authDomain:"sistema-meseros.firebaseapp.com",
+databaseURL:"https://sistema-meseros-default-rtdb.firebaseio.com",
+projectId:"sistema-meseros"
 };
 
 firebase.initializeApp(firebaseConfig);
-var database = firebase.database();
+var database=firebase.database();
 
 let mesaActual=null;
 let estadoActual=1;
 
-database.ref("mesas").once("value",function(snapshot){
-if(!snapshot.exists()){
+database.ref("mesas").once("value",snap=>{
+if(!snap.exists()){
 for(let i=1;i<=13;i++){
-database.ref("mesas/"+i).set({
-estado:1,
-pedido:{}
-});
+database.ref("mesas/"+i).set({estado:1,pedido:{}});
 }
 }
 });
 
 function cargarMesas(){
-database.ref("mesas").on("value",snapshot=>{
-let data=snapshot.val()||{};
+database.ref("mesas").on("value",snap=>{
+let data=snap.val()||{};
 let cont=document.getElementById("mesas");
 cont.innerHTML="";
 for(let i=1;i<=13;i++){
 let estado=data[i]?.estado||1;
-let clase = estado==1?"sin_atender":
-estado==2?"tomado":
-estado==3?"atendido":"pagado";
+let clase=estado==1?"sin_atender":estado==2?"tomado":estado==3?"atendido":"pagado";
 cont.innerHTML+=`<div class="mesa ${clase}" onclick="abrirMesa(${i})">Mesa ${i}</div>`;
 }
 });
@@ -302,12 +144,10 @@ mesaActual=num;
 document.getElementById("mesas").style.display="none";
 document.getElementById("pedido").style.display="block";
 document.getElementById("tituloMesa").innerText="Mesa "+num;
-
 database.ref("mesas/"+num+"/estado").once("value",snap=>{
 estadoActual=snap.val()||1;
 actualizarBotones();
 });
-
 cargarPedido();
 cargarCategorias();
 }
@@ -326,79 +166,39 @@ document.getElementById("btn"+(estadoActual+1)).disabled=false;
 
 function cambiarEstado(nuevo){
 
-// CUANDO PRESIONA "PEDIDO TOMADO"
 if(nuevo==2){
 
 database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
-
-let pedidoActual = snap.val();
-
-if(!pedidoActual){
-alert("No hay platos en el pedido");
-return;
-}
-
-let platosCocina = {};
-
+let pedidoActual=snap.val();
+if(!pedidoActual){alert("No hay platos");return;}
+let platosCocina={};
 for(let key in pedidoActual){
-
-// SOLO ENVIAR A COCINA LOS TIPO "cocina"
-if(pedidoActual[key].tipo && pedidoActual[key].tipo=="cocina"){
-
-platosCocina[key] = {
-nombre: pedidoActual[key].nombre,
-precio: pedidoActual[key].precio,
-estado: "pendiente"
-};
-
+if(pedidoActual[key].tipo=="cocina"){
+platosCocina[key]={nombre:pedidoActual[key].nombre,precio:pedidoActual[key].precio,estado:"pendiente"};
 }
-
 }
-
-// SI HAY PLATOS DE COCINA → SE ENVÍA
-if(Object.keys(platosCocina).length > 0){
-
-database.ref("cocina").push({
-mesa: mesaActual,
-estado: "nuevo",
-hora: Date.now(),
-platos: platosCocina
-});
-
+if(Object.keys(platosCocina).length>0){
+database.ref("cocina").push({mesa:mesaActual,estado:"nuevo",hora:Date.now(),platos:platosCocina});
 }
-
-// ACTUALIZAR ESTADO DE LA MESA
 database.ref("mesas/"+mesaActual+"/estado").set(2);
 estadoActual=2;
 actualizarBotones();
-
 });
-
 return;
 }
 
-
-// CONFIRMAR PAGO
 if(nuevo==4){
-
 if(confirm("¿Confirmar pago y cerrar mesa?")){
-
 database.ref("mesas/"+mesaActual+"/pedido").remove();
 database.ref("mesas/"+mesaActual+"/estado").set(1);
-
 volverMesas();
-
 }
-
 return;
 }
 
-
-// OTROS ESTADOS
 database.ref("mesas/"+mesaActual+"/estado").set(nuevo);
 estadoActual=nuevo;
 actualizarBotones();
-
 }
 
 function volverMesas(){
@@ -408,22 +208,22 @@ document.getElementById("mesas").style.display="grid";
 
 let platos={
 "Ceviches":[
-{nombre:"Ceviche clásico",precio:26},
-{nombre:"Ceviche mixto",precio:32}
+{nombre:"Ceviche clásico",precio:26,tipo:"cocina"},
+{nombre:"Ceviche mixto",precio:32,tipo:"cocina"}
 ],
 "Chicharrones":[
-{nombre:"Chicharrón de pescado",precio:28}
+{nombre:"Chicharrón de pescado",precio:28,tipo:"cocina"}
 ],
 "Bebidas":[
-{nombre:"Limonada",precio:12}
+{nombre:"Limonada",precio:12,tipo:"bebida"}
 ]
 };
 
 function cargarCategorias(){
 let cont=document.getElementById("categorias");
 cont.innerHTML="";
-for(let categoria in platos){
-cont.innerHTML+=`<div class="categoria" onclick="mostrarPlatos('${categoria}')">${categoria}</div>`;
+for(let cat in platos){
+cont.innerHTML+=`<div class="categoria" onclick="mostrarPlatos('${cat}')">${cat}</div>`;
 }
 }
 
@@ -431,11 +231,7 @@ function mostrarPlatos(cat){
 let cont=document.getElementById("categorias");
 cont.innerHTML="";
 platos[cat].forEach(p=>{
-cont.innerHTML+=`
-<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})">
-<span>${p.nombre}</span>
-<span>S/${p.precio}</span>
-</div>`;
+cont.innerHTML+=`<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})"><span>${p.nombre}</span><span>S/${p.precio}</span></div>`;
 });
 }
 
@@ -446,72 +242,54 @@ cont.innerHTML="";
 for(let cat in platos){
 platos[cat].forEach(p=>{
 if(p.nombre.toLowerCase().includes(texto)){
-cont.innerHTML+=`
-<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})">
-<span>${p.nombre}</span>
-<span>S/${p.precio}</span>
-</div>`;
+cont.innerHTML+=`<div class="plato" onclick="agregarProducto('${p.nombre}',${p.precio})"><span>${p.nombre}</span><span>S/${p.precio}</span></div>`;
 }
 });
 }
 }
 
 function agregarProducto(nombre,precio){
+let tipoDetectado="cocina";
+for(let cat in platos){
+platos[cat].forEach(p=>{
+if(p.nombre==nombre){tipoDetectado=p.tipo;}
+});
+}
 database.ref("mesas/"+mesaActual+"/pedido").push({
 nombre:nombre,
-precio:precio
+precio:precio,
+tipo:tipoDetectado,
+servido:false
 });
 }
 
 function cargarPedido(){
-
 database.ref("mesas/"+mesaActual+"/pedido").on("value",snap=>{
-
 let data=snap.val()||{};
 let lista=document.getElementById("listaPedido");
 let total=0;
 lista.innerHTML="";
-
 for(let key in data){
-
 total+=data[key].precio;
-
-let esBebida = data[key].tipo=="bebida";
-
+let esBebida=data[key].tipo=="bebida";
 lista.innerHTML+=`
 <div class="producto">
 <span>
-${esBebida ? 
-`<span onclick="marcarBebida('${key}')"
-style="cursor:pointer;">
-${data[key].servido?"✔ ":"⬜ "}
-</span>` 
-: ""}
-
+${esBebida?`<span onclick="marcarBebida('${key}')" style="cursor:pointer;">${data[key].servido?"✔ ":"⬜ "}</span>`:""}
 ${data[key].nombre} - S/${data[key].precio}
 </span>
-
 <button class="eliminar" onclick="eliminar('${key}')">x</button>
-</div>
-`;
-
+</div>`;
 }
-
 document.getElementById("total").innerText=total;
-
 });
 }
 
 function marcarBebida(key){
-
-database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido")
-.once("value",snap=>{
-
-let estadoActual = snap.val()||false;
-database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido").set(!estadoActual);
-
+database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido").once("value",snap=>{
+let estado=snap.val()||false;
+database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido").set(!estado);
 });
-
 }
 
 function eliminar(key){
@@ -520,63 +298,21 @@ database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
 
 cargarMesas();
 
-// ESCUCHAR NOTIFICACIONES DE COCINA
-database.ref("notificaciones").on("child_added",function(snapshot){
-
-let data = snapshot.val();
-
+database.ref("notificaciones").on("child_added",snap=>{
+let data=snap.val();
 mostrarNotificacion("🍽 Plato listo - Mesa "+data.mesa+" - "+data.plato);
-
-// Eliminar notificación después de mostrarla
-database.ref("notificaciones/"+snapshot.key).remove();
-
+database.ref("notificaciones/"+snap.key).remove();
 });
 
 function mostrarNotificacion(texto){
-
-let div = document.getElementById("notificacion");
-div.innerText = texto;
+let div=document.getElementById("notificacion");
+div.innerText=texto;
 div.style.display="block";
-
 document.getElementById("sonidoNoti").play();
-
-setTimeout(()=>{
-div.style.display="none";
-},4000);
-
+setTimeout(()=>{div.style.display="none";},4000);
 }
 
 </script>
 
-<div id="notificacion"
-style="
-position:fixed;
-top:20px;
-left:50%;
-transform:translateX(-50%);
-background:#2e7d32;
-color:white;
-padding:15px 25px;
-border-radius:10px;
-font-weight:bold;
-display:none;
-z-index:9999;
-box-shadow:0 0 15px rgba(0,0,0,0.5);
-">
-</div>
-
-<audio id="sonidoNoti" preload="auto">
-<source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">
-</audio>
-  
 </body>
 </html>
-
-
-
-
-
-
-
-
-
