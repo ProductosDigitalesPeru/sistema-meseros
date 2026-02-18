@@ -166,39 +166,76 @@ document.getElementById("btn"+(estadoActual+1)).disabled=false;
 
 function cambiarEstado(nuevo){
 
+// 🔒 VALIDACIÓN BEBIDAS ANTES DE AVANZAR
+if(nuevo==3 || nuevo==4){
+
+database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
+let pedidoActual=snap.val();
+if(!pedidoActual){
+alert("No hay pedido");
+return;
+}
+
+let bebidaPendiente=false;
+
+for(let key in pedidoActual){
+if(pedidoActual[key].tipo=="bebida" && pedidoActual[key].servido==false){
+bebidaPendiente=true;
+break;
+}
+}
+
+if(bebidaPendiente){
+alert("⚠️ Hay bebidas sin servir. Marque ✔ antes de continuar.");
+return;
+}
+
+// ✅ Si no hay bebidas pendientes continúa flujo normal
+continuarCambioEstado(nuevo);
+
+});
+
+return;
+}
+
+// Estado 2 → enviar cocina
 if(nuevo==2){
 
 database.ref("mesas/"+mesaActual+"/pedido").once("value",snap=>{
 let pedidoActual=snap.val();
 if(!pedidoActual){alert("No hay platos");return;}
+
 let platosCocina={};
+
 for(let key in pedidoActual){
 if(pedidoActual[key].tipo=="cocina"){
-platosCocina[key]={nombre:pedidoActual[key].nombre,precio:pedidoActual[key].precio,estado:"pendiente"};
+platosCocina[key]={
+nombre:pedidoActual[key].nombre,
+precio:pedidoActual[key].precio,
+estado:"pendiente"
+};
 }
 }
+
 if(Object.keys(platosCocina).length>0){
-database.ref("cocina").push({mesa:mesaActual,estado:"nuevo",hora:Date.now(),platos:platosCocina});
+database.ref("cocina").push({
+mesa:mesaActual,
+estado:"nuevo",
+hora:Date.now(),
+platos:platosCocina
+});
 }
+
 database.ref("mesas/"+mesaActual+"/estado").set(2);
 estadoActual=2;
 actualizarBotones();
+
 });
+
 return;
 }
 
-if(nuevo==4){
-if(confirm("¿Confirmar pago y cerrar mesa?")){
-database.ref("mesas/"+mesaActual+"/pedido").remove();
-database.ref("mesas/"+mesaActual+"/estado").set(1);
-volverMesas();
-}
-return;
-}
-
-database.ref("mesas/"+mesaActual+"/estado").set(nuevo);
-estadoActual=nuevo;
-actualizarBotones();
+continuarCambioEstado(nuevo);
 }
 
 function volverMesas(){
@@ -316,3 +353,4 @@ setTimeout(()=>{div.style.display="none";},4000);
 
 </body>
 </html>
+
