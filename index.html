@@ -489,6 +489,18 @@ document.getElementById("total").innerText=total;
 });
 }
 
+function marcarBebida(key){
+
+database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido")
+.once("value",snap=>{
+
+let estadoActual = snap.val()||false;
+database.ref("mesas/"+mesaActual+"/pedido/"+key+"/servido").set(!estadoActual);
+
+});
+
+}
+
 function eliminar(key){
 database.ref("mesas/"+mesaActual+"/pedido/"+key).remove();
 }
@@ -546,6 +558,7 @@ box-shadow:0 0 15px rgba(0,0,0,0.5);
   
 </body>
 </html>
+
 
 
 
