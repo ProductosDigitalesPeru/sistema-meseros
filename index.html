@@ -238,6 +238,23 @@ return;
 continuarCambioEstado(nuevo);
 }
 
+function continuarCambioEstado(nuevo){
+
+if(nuevo==4){
+if(confirm("¿Confirmar pago y cerrar mesa?")){
+database.ref("mesas/"+mesaActual+"/pedido").remove();
+database.ref("mesas/"+mesaActual+"/estado").set(1);
+volverMesas();
+}
+return;
+}
+
+database.ref("mesas/"+mesaActual+"/estado").set(nuevo);
+estadoActual=nuevo;
+actualizarBotones();
+
+}
+
 function volverMesas(){
 document.getElementById("pedido").style.display="none";
 document.getElementById("mesas").style.display="grid";
@@ -353,4 +370,5 @@ setTimeout(()=>{div.style.display="none";},4000);
 
 </body>
 </html>
+
 
